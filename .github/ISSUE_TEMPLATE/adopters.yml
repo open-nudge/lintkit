@@ -22,11 +22,11 @@ body:
       # yamllint disable rule:line-length
       description: >
         By submitting this issue, you agree to follow this project's
-        [Code of Conduct](https://github.com/open-nudge/opentemplate/blob/main/CODE_OF_CONDUCT.md)
+        [Code of Conduct](https://github.com/open-nudge/lintkit/blob/main/CODE_OF_CONDUCT.md)
       options:
         - label: >
             I agree to follow this project's
-            [Code of Conduct](https://github.com/open-nudge/opentemplate/blob/main/CODE_OF_CONDUCT.md)
+            [Code of Conduct](https://github.com/open-nudge/lintkit/blob/main/CODE_OF_CONDUCT.md)
           required: true
           # yamllint enable rule:line-length
   - type: "checkboxes"
@@ -60,7 +60,7 @@ body:
     attributes:
       label: "Adopter Name"
       description: >
-        Company, organization, or project adopting opentemplate.
+        Company, organization, or project adopting lintkit.
     validations:
       required: true
   - type: "input"
@@ -88,7 +88,7 @@ body:
       label: "Who Will Add This Adopter?"
       # yamllint disable rule:line-length
       description: >
-        File to edit: [ADOPTERS.md](https://github.com/open-nudge/opentemplate/blob/main/ADOPTERS.md)
+        File to edit: [ADOPTERS.md](https://github.com/open-nudge/lintkit/blob/main/ADOPTERS.md)
       # yamllint enable rule:line-length
       multiple: false
       options:

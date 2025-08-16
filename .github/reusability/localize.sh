@@ -11,7 +11,7 @@
 
 directory="${1:-./workflows}"
 skip_files="${2:-}" # Comma-separated list of files to skip
-repo="${3:-open-nudge/opentemplate}" # Customizable repository reference
+repo="${3:-open-nudge/lintkit}" # Customizable repository reference
 
 # shellcheck disable=SC3045,SC3011
 IFS=',' read -r -a skip_array <<< "${skip_files}"

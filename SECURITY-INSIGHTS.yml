@@ -9,11 +9,11 @@ header:
   last-updated: "2025-06-15"
   expiration-date: "2026-05-15T10:30:31Z"
   project-url: >
-    https://github.com/open-nudge/opentemplate
+    https://github.com/open-nudge/lintkit
   changelog: >
-    https://github.com/open-nudge/opentemplate/blob/main/CHANGELOG.md
+    https://github.com/open-nudge/lintkit/blob/main/CHANGELOG.md
   license: >
-    https://github.com/open-nudge/opentemplate/blob/main/LICENSE.md
+    https://github.com/open-nudge/lintkit/blob/main/LICENSE.md
 project-lifecycle:
   status: "wip"
   bug-fixes-only: false
@@ -22,26 +22,26 @@ project-lifecycle:
       uri: "https://github.com/open-nudge"
       role: "owner"
   roadmap: >
-    https://github.com/open-nudge/opentemplate/blob/main/ROADMAP.md
+    https://github.com/open-nudge/lintkit/blob/main/ROADMAP.md
 contribution-policy:
   accepts-pull-requests: true
   accepts-automated-pull-requests: true
   code-of-conduct: >
-    https://github.com/open-nudge/opentemplate/blob/main/CODE_OF_CONDUCT.md
+    https://github.com/open-nudge/lintkit/blob/main/CODE_OF_CONDUCT.md
   contributing-policy: >
-    https://github.com/open-nudge/opentemplate/blob/main/CONTRIBUTING.md
+    https://github.com/open-nudge/lintkit/blob/main/CONTRIBUTING.md
 documentation:
-  - "https://open-nudge.github.io/opentemplate"
+  - "https://open-nudge.github.io/lintkit"
 distribution-points:
-  - "https://github.com/open-nudge/opentemplate"
-  - "https://github.com/open-nudge/opentemplate/releases"
+  - "https://github.com/open-nudge/lintkit"
+  - "https://github.com/open-nudge/lintkit/releases"
 security-artifacts:
   threat-model:
     threat-model-created: false
   self-assessment:
     self-assessment-created: true
     evidence-url:
-      - "https://github.com/open-nudge/opentemplate/blob/master/SECURITY-SELF-ASSESSMENT.md"
+      - "https://github.com/open-nudge/lintkit/blob/master/SECURITY-SELF-ASSESSMENT.md"
 security-testing:
   # SCA
   - tool-type: "sca"
@@ -97,7 +97,7 @@ security-testing:
   - tool-type: "sast"
     tool-name: "Pre-commit hooks"
     tool-url: >
-      https://github.com/open-nudge/opentemplate/blob/main/.pre-commit-config.yaml
+      https://github.com/open-nudge/lintkit/blob/main/.pre-commit-config.yaml
     tool-version: "latest"
     integration:
       ad-hoc: true
@@ -126,24 +126,24 @@ security-testing:
 security-contacts:
   - type: "website"
     value: >
-      https://github.com/open-nudge/opentemplate/security/policy
+      https://github.com/open-nudge/lintkit/security/policy
 vulnerability-reporting:
   accepts-vulnerability-reports: true
   security-policy: >
-    https://github.com/open-nudge/opentemplate/security/policy
+    https://github.com/open-nudge/lintkit/security/policy
   comment: >
     The first and best way to report a vulnerability is by using
     private security issues in GitHub.
 dependencies:
   third-party-packages: true
   dependencies-lists:
-    - "https://github.com/open-nudge/opentemplate/blob/main/pyproject.toml"
+    - "https://github.com/open-nudge/lintkit/blob/main/pyproject.toml"
   env-dependencies-policy:
     policy-url: >
-      https://github.com/open-nudge/opentemplate/blob/main/SECURITY-DEPENDENCY.md
+      https://github.com/open-nudge/lintkit/blob/main/SECURITY-DEPENDENCY.md
   sbom:
     - sbom-file: >
-        https://github.com/open-nudge/opentemplate/releases
+        https://github.com/open-nudge/lintkit/releases
       sbom-format: "spdx"
       sbom-url: >
         https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/exporting-a-software-bill-of-materials-for-your-repository
@@ -159,7 +159,7 @@ dependencies:
         It can be accessed from the release page of the repository or from
         the Insights tab of the repository (as described by sbom-url).
     - sbom-file: >
-        https://github.com/open-nudge/opentemplate/releases
+        https://github.com/open-nudge/lintkit/releases
       sbom-format: "cyclonedx"
       sbom-url: "https://github.com/CycloneDX/cyclonedx-python"
       sbom-creation: |

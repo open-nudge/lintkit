@@ -9,8 +9,8 @@ SPDX-License-Identifier: Apache-2.0
 
 ## Checklist
 
-- [ ] I agree to follow this project's [Code of Conduct](https://github.com/open-nudge/opentemplate/blob/main/CODE_OF_CONDUCT.md)
-- [ ] I have read this project's [Contributing Guide](https://github.com/open-nudge/opentemplate/blob/main/CONTRIBUTING.md)
+- [ ] I agree to follow this project's [Code of Conduct](https://github.com/open-nudge/lintkit/blob/main/CODE_OF_CONDUCT.md)
+- [ ] I have read this project's [Contributing Guide](https://github.com/open-nudge/lintkit/blob/main/CONTRIBUTING.md)
 - [ ] I have created relevant issue(s) and linked them in the PR description
 
 > Closes #

@@ -10,7 +10,7 @@ SPDX-License-Identifier: Apache-2.0
 ## General
 
 For the public-facing documentation, see the
-[project's documentation](https://open-nudge.github.io/opentemplate).
+[project's documentation](https://open-nudge.github.io/lintkit).
 
 Read on for developer-specific documentation.
 

@@ -11,14 +11,14 @@ contact_links:
   - name: "Question, Problem"
     about: "Ask a general question in GitHub Discussions."
     url: >
-      https://github.com/open-nudge/opentemplate/discussions/categories/q-a
+      https://github.com/open-nudge/lintkit/discussions/categories/q-a
   - name: "Projects"
-    about: "Share projects built with opentemplate."
+    about: "Share projects built with lintkit."
     url: >
-      https://github.com/open-nudge/opentemplate/discussions/categories/show-and-tell
+      https://github.com/open-nudge/lintkit/discussions/categories/show-and-tell
   - name: "Tips and Tricks"
     about: >
-      Share useful code snippets, tips, or resources related to opentemplate.
+      Share useful code snippets, tips, or resources related to lintkit.
     url: >
-      https://github.com/open-nudge/opentemplate/discussions/categories/show-and-tell
+      https://github.com/open-nudge/lintkit/discussions/categories/show-and-tell
 ...

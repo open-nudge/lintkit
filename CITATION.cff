@@ -6,26 +6,13 @@
 ---
 cff-version: "1.2.0"
 abstract: >-
-  All-in-one Python template. One click. Everything included.
+  Build your own linter in minutes - from Python code to config files (YAML, JSON, TOML)
 message: "If you use this software, please cite it as below."
 authors:
   - family-names: "open-nudge"
-url: "https://github.com/open-nudge/opentemplate"
-repository-code: "https://github.com/open-nudge/opentemplate"
-title: "opentemplate"
+url: "https://github.com/open-nudge/lintkit"
+repository-code: "https://github.com/open-nudge/lintkit"
+title: "lintkit"
 license: "Apache-2.0"
 keywords:
   - "python"
-  - "template"
-  - "open source"
-  - "security"
-  - "automation"
-  - "developer experience"
-  - "devsec"
-  - "devsecops"
-  - "best practices"
-  - "hardening"
-  - "nudge"
-  - "github actions"
-  - "sbom"
-  - "attestation"

@@ -12,9 +12,9 @@ requires = [
 ]
 
 [project]
-name = "opentemplate"
+name = "lintkit"
 
-description = "All-in-one Python template. One click. Everything included."
+description = "Build your own linter in minutes - from Python code to config files (YAML, JSON, TOML)"
 readme = "README.md"
 
 license = "Apache-2.0"
@@ -73,11 +73,11 @@ dynamic = [ "version" ]
 dependencies = [
 ]
 
-urls.Changelog = "https://github.com/open-nudge/opentemplate/blob/master/CHANGELOG.md"
-urls.Documentation = "https://open-nudge.github.io/opentemplate"
-urls.Homepage = "https://open-nudge.github.io/opentemplate"
-urls.Issues = "https://github.com/open-nudge/opentemplate/issues"
-urls.Repository = "https://github.com/open-nudge/opentemplate"
+urls.Changelog = "https://github.com/open-nudge/lintkit/blob/master/CHANGELOG.md"
+urls.Documentation = "https://open-nudge.github.io/lintkit"
+urls.Homepage = "https://open-nudge.github.io/lintkit"
+urls.Issues = "https://github.com/open-nudge/lintkit/issues"
+urls.Repository = "https://github.com/open-nudge/lintkit"
 
 [dependency-groups]
 dev-tests = [
@@ -419,16 +419,16 @@ source = [
   "tests",
 ]
 source_pkgs = [
-  "opentemplate",
+  "lintkit",
 ]
 omit = [
-  "src/opentemplate/**"
+  "src/lintkit/**"
 ]
 
 [tool.coverage.paths]
 source = [
-  "src/opentemplate",
-  "**/opentemplate",
+  "src/lintkit",
+  "**/lintkit",
 ]
 
 [tool.coverage.report]
@@ -456,7 +456,7 @@ ignore_undeclared = [
   "mkdocs_gen_files",
   "pytest",
   "hypothesis",
-  "opentemplate",
+  "lintkit",
 ]
 
 ignore_unused = [
@@ -610,8 +610,8 @@ plugins.md042.enabled = false
 
 [tool.md_dead_link_check]
 exclude_links = [
-  "https://github.com/open-nudge/opentemplate*",
-  "https://open-nudge.github.io/opentemplate*",
+  "https://github.com/open-nudge/lintkit*",
+  "https://open-nudge.github.io/lintkit*",
   "/LICENSE.md",
   "https://open-nudge.github.io*",
   "templateskip",
@@ -926,7 +926,7 @@ check-pre-commit-config = "pre-commit validate-config {args:.pre-commit-config.y
 check-pre-commit-hooks = "pre-commit validate-manifest {args:.pre-commit-hooks.yaml}"
 
 # Scripts below are (mostly) separated from pre-commit-hooks to group them semantically
-# This approach allows opentemplate to run pre-commit checks directly
+# This approach allows lintkit to run pre-commit checks directly
 # which circumvents buggy venv creation within `pdm` environment
 
 # See definitions and specification here:
@@ -1153,7 +1153,7 @@ check-release = { composite = [
 
 ###############################################################################
 #
-#                     COMMITTING (move to opentemplate later)
+#                     COMMITTING (move to lintkit later)
 #
 ###############################################################################
 

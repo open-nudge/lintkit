@@ -31,10 +31,10 @@ in this repository, report it directly to the project maintainers:
 To find project-related support, check the following resources:
 
 - To learn more about using this project, see the
-    [__documentation__](https://open-nudge.github.io/opentemplate).
+    [__documentation__](https://open-nudge.github.io/lintkit).
 - To discuss the project, you can join the
-    [__discussions__](https://github.com/open-nudge/opentemplate/discussions).
+    [__discussions__](https://github.com/open-nudge/lintkit/discussions).
     and follow the provided template.
 - To report a bug or request a feature, you can
-    [__open an issue__](https://github.com/open-nudge/opentemplate/issues)
+    [__open an issue__](https://github.com/open-nudge/lintkit/issues)
     and follow the provided template.

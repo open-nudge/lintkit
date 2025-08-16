@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from importlib.metadata import version
 
-__version__ = version("opentemplate")
-"""Current opentemplate version."""
+__version__ = version("lintkit")
+"""Current lintkit version."""
 
 del version
 

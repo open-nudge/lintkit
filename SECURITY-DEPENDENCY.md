@@ -9,24 +9,24 @@ SPDX-License-Identifier: Apache-2.0
 
 ## Purpose
 
-This policy describes how `opentemplate` maintainers
+This policy describes how `lintkit` maintainers
 consume third-party packages.
 
 ## Scope
 
-This policy applies to all `opentemplate` maintainers
-and all third-party packages used in the `opentemplate`
+This policy applies to all `lintkit` maintainers
+and all third-party packages used in the `lintkit`
 project.
 
 ## Policy
 
-`opentemplate` contributors must follow these guidelines
+`lintkit` contributors must follow these guidelines
 when consuming third-party packages:
 
 ### General
 
 - Only use third-party packages necessary for the functionality of
-    `opentemplate`.
+    `lintkit`.
 - Use maintained third-party packages with a reasonably good reputation.
 - Prefer small, single-purpose packages over large, complex ones.
 - Implement small functionalities within the project instead of
@@ -50,11 +50,11 @@ when consuming third-party packages:
 
 ## Procedure
 
-When adding a new third-party package to `opentemplate`,
+When adding a new third-party package to `lintkit`,
 contributors must follow these steps:
 
 1. Is the package necessary for the functionality
-    of `opentemplate`?
+    of `lintkit`?
 1. How stable is the package? Is it a pre-release version (`0.x.y`) or a stable
     version (`1.x.y` or above)?
 1. Research the package. Is it well-maintained? Does it have a good reputation?
@@ -64,18 +64,18 @@ contributors must follow these steps:
 
 ## Archived or deprecated packages
 
-When a third-party package is discontinued, the `opentemplate`
+When a third-party package is discontinued, the `lintkit`
 maintainers must ensure replacement of the package with a suitable alternative.
 
 ## Enforcement
 
-This policy is enforced by the `opentemplate` maintainers.
+This policy is enforced by the `lintkit` maintainers.
 Maintainers are expected to review each other's code changes to ensure
 that they comply with this policy.
 
 ## Exceptions
 
-Exceptions to this policy may be granted by the `opentemplate`
+Exceptions to this policy may be granted by the `lintkit`
 maintainers/leaders on a case-by-case basis.
 
 ## Credits

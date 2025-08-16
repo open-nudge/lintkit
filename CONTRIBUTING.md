@@ -32,12 +32,12 @@ Adhere to [Code of Conduct](./CODE_OF_CONDUCT.md) at all times.
 We welcome non-code contributions as well. If you have any suggestions,
 ideas, or want to report a bug, follow these steps:
 
-1. Verify [open issues](https://github.com/open-nudge/opentemplate/issues)
+1. Verify [open issues](https://github.com/open-nudge/lintkit/issues)
     to see if someone reposrted similar issue or requested a similar feature.
 1. If the issue exists, upvote it and share more information
     in a comment (use cases, examples and so on).
 1. If the issue does not exist, create a new one from the
-    [Issues Templates](https://github.com/open-nudge/opentemplate/issues/new/choose)
+    [Issues Templates](https://github.com/open-nudge/lintkit/issues/new/choose)
     tab.
 1. Follow the appropriate template for the issue
 
@@ -85,12 +85,12 @@ pdm setup
 
 After the setup, you will, probably, contribute to the following directories:
 
-- [`src/`](https://github.com/open-nudge/opentemplate/blob/main/src/README.md)
+- [`src/`](https://github.com/open-nudge/lintkit/blob/main/src/README.md)
     with the source code of the project
-- [`tests/`](https://github.com/open-nudge/opentemplate/blob/main/tests/README.md)
+- [`tests/`](https://github.com/open-nudge/lintkit/blob/main/tests/README.md)
     with the project's tests
 
-Check [project documentation](https://open-nudge.github.io/opentemplate)
+Check [project documentation](https://open-nudge.github.io/lintkit)
 and `code`/`docs` in these folders for more information.
 
 ### Making changes

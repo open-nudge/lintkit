@@ -9,5 +9,5 @@ SPDX-License-Identifier: Apache-2.0
 
 <!--- pyml disable-num-lines 3 line-length-->
 
-See [releases](https://github.com/open-nudge/opentemplate/releases)
+See [releases](https://github.com/open-nudge/lintkit/releases)
 for detailed changelog.

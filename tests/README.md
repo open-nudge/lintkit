@@ -5,7 +5,7 @@ SPDX-FileContributor: szymonmaszke <github@maszke.co>
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# Tests of opentemplate
+# Tests of lintkit
 
 - `test_smoke.py` - generic
     [smoke tests](https://grafana.com/blog/2024/01/30/smoke-testing/)

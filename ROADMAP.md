@@ -7,5 +7,4 @@ SPDX-License-Identifier: Apache-2.0
 
 # Roadmap
 
-- Add support for [ty](https://github.com/astral-sh/ty) for type checking
-    instead of `basepyright` once it becomes a little bit more mature.
+<!-- Describe project's roadmap here. -->

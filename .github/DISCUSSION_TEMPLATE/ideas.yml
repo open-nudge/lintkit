@@ -9,7 +9,7 @@ labels:
 body:
   - type: "markdown"
     attributes:
-      value: "Thanks for your interest in opentemplate!"
+      value: "Thanks for your interest in lintkit!"
   - type: "markdown"
     attributes:
       value: >
@@ -20,7 +20,7 @@ body:
     attributes:
       value: >
         Link to the issue tracker:
-        [issues](https://github.com/open-nudge/opentemplate/issues/new/choose)
+        [issues](https://github.com/open-nudge/lintkit/issues/new/choose)
   - type: "checkboxes"
     id: "terms"
     attributes:
@@ -28,11 +28,11 @@ body:
       # yamllint disable rule:line-length
       description: >
         By submitting this idea, you agree to follow this project's
-        [Code of Conduct](https://github.com/open-nudge/opentemplate/blob/main/CODE_OF_CONDUCT.md)
+        [Code of Conduct](https://github.com/open-nudge/lintkit/blob/main/CODE_OF_CONDUCT.md)
       options:
         - label: >
             I agree to follow this project's
-            [Code of Conduct](https://github.com/open-nudge/opentemplate/blob/main/CODE_OF_CONDUCT.md)
+            [Code of Conduct](https://github.com/open-nudge/lintkit/blob/main/CODE_OF_CONDUCT.md)
           required: true
           # yamllint enable rule:line-length
   - type: "input"

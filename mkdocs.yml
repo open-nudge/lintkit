@@ -6,15 +6,15 @@
 ---
 # yamllint disable rule:line-length
 site_name: >-
-  opentemplate
+  lintkit
 site_description: >-
-  All-in-one Python template. One click. Everything included.
+  Build your own linter in minutes - from Python code to config files (YAML, JSON, TOML)
 site_url: >-
-  https://open-nudge.github.io/opentemplate/
+  https://open-nudge.github.io/lintkit/
 repo_url: >-
-  https://github.com/open-nudge/opentemplate
+  https://github.com/open-nudge/lintkit
 repo_name: >-
-  open-nudge/opentemplate
+  open-nudge/lintkit
 # yamllint enable rule:line-length
 
 exclude_docs: |

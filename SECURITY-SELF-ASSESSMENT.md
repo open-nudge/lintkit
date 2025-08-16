@@ -5,7 +5,7 @@ SPDX-FileContributor: szymonmaszke <github@maszke.co>
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# Security self-assessment of opentemplate
+# Security self-assessment of lintkit
 
 Source: https://tag-security.cncf.io/community/assessments/guide/self-assessment/
 
@@ -14,9 +14,9 @@ Source: https://tag-security.cncf.io/community/assessments/guide/self-assessment
 - [Metadata](#metadata)
     - [Security links](#security-links)
 - [Overview](#overview)
+    - [Background](#background)
     - [Actors](#actors)
     - [Actions](#actions)
-    - [Background](#background)
     - [Goals](#goals)
     - [Non-goals](#non-goals)
 - [Self-assessment use](#self-assessment-use)
@@ -35,33 +35,32 @@ Source: https://tag-security.cncf.io/community/assessments/guide/self-assessment
 
 <!-- pyml disable-num-lines 21 line-length-->
 
-| Category          | Resource                                                                                                   |
-| ----------------- | ---------------------------------------------------------------------------------------------------------- |
-| Assessment Stage  | Complete                                                                                                   |
-| Creator           | open-nudge                                                                                                 |
-| Software          | [https://github.com/open-nudge/opentemplate](https://github.com/open-nudge/opentemplate)                   |
-| Website           | [https://open-nudge.github.io/opentemplate](https://open-nudge.github.io/opentemplate)                     |
-| Security Provider | Yes                                                                                                        |
-| Languages         | Python                                                                                                     |
-| SBOM              | [https://github.com/open-nudge/opentemplate/releases](https://github.com/open-nudge/opentemplate/releases) |
+| Category          | Resource                                                                                         |
+| ----------------- | ------------------------------------------------------------------------------------------------ |
+| Assessment Stage  | Incomplete                                                                                       |
+| Creator           | open-nudge                                                                                       |
+| Software          | [https://github.com/open-nudge/lintkit](https://github.com/open-nudge/lintkit)                   |
+| Website           | [https://open-nudge.github.io/lintkit](https://open-nudge.github.io/lintkit)                     |
+| Security Provider | No                                                                                               |
+| Languages         | Python                                                                                           |
+| SBOM              | [https://github.com/open-nudge/lintkit/releases](https://github.com/open-nudge/lintkit/releases) |
 
 ### Security links
 
-| Category          | Resource                                                                                                                                                 |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Security File     | [https://github.com/open-nudge/opentemplate/blob/main/SECURITY.md](https://github.com/open-nudge/opentemplate/blob/main/SECURITY.md)                     |
-| Security Insights | [https://github.com/open-nudge/opentemplate/blob/main/SECURITY-INSIGHTS.yml](https://github.com/open-nudge/opentemplate/blob/main/SECURITY-INSIGHTS.yml) |
-| Dependencies      | [https://github.com/open-nudge/opentemplate/blob/main/pyproject.toml](https://github.com/open-nudge/opentemplate/blob/main/pyproject.toml)               |
-| Release Artifacts | [https://github.com/open-nudge/opentemplate/releases](https://github.com/open-nudge/opentemplate/releases)                                               |
+| Category          | Resource                                                                                                                                       |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Security File     | [https://github.com/open-nudge/lintkit/blob/main/SECURITY.md](https://github.com/open-nudge/lintkit/blob/main/SECURITY.md)                     |
+| Security Insights | [https://github.com/open-nudge/lintkit/blob/main/SECURITY-INSIGHTS.yml](https://github.com/open-nudge/lintkit/blob/main/SECURITY-INSIGHTS.yml) |
+| Dependencies      | [https://github.com/open-nudge/lintkit/blob/main/pyproject.toml](https://github.com/open-nudge/lintkit/blob/main/pyproject.toml)               |
+| Release Artifacts | [https://github.com/open-nudge/lintkit/releases](https://github.com/open-nudge/lintkit/releases)                                               |
 
 ## Overview
 
-All-in-one Python template. One click. Everything included.
+Build your own linter in minutes - from Python code to config files (YAML, JSON, TOML)
 
 ### Background
 
-This project provides a base for Python projects, which provides
-developer workflows, security posture and best practices.
+TBD
 
 ### Actors
 
@@ -70,30 +69,16 @@ developer workflows, security posture and best practices.
 
 ### Actions
 
-- [OSSF Scorecard](https://github.com/ossf/scorecard)
-- [Security file](./SECURITY.md)
-- [Security Insights Specification](https://github.com/open-nudge/opentemplate/blob/main/SECURITY-INSIGHTS.yml)
-    as defined [here](https://github.com/ossf/security-insights-spec)
-- [Security Self Assessment](SECURITY-SELF-ASSESSMENT.md)
-- [Security Dependencies Policy](SECURITY-DEPENDENCY.md)
-- [Renovate Bot](https://github.com/open-nudge/opentemplate/blob/main/.github/renovate.json)
-    for automated dependency updates
-- [Software Bills Of Material (SBOMs)](https://github.com/open-nudge/opentemplate/releases)
-- [Sigstore signing](https://github.com/open-nudge/opentemplate/releases)
-    as seen [here](https://github.com/sigstore/sigstore-python)
-- GitHub Actions CI/CD pipelines with minimal permissions
-- GitHub Actions CI/CD pipelines hardened via [Harden Runner](https://github.com/step-security/harden-runner)
-- [Pre-commit hooks](https://pre-commit.com/) for local code quality
-    and security verification
+- Core security features are provided by
+    [opentemplate](https://github.com/open-nudge/opentemplate) [](templateskip)
 
 ### Goals
 
-Provide high quality secure project template free of charge.
+TBD
 
 ### Non-goals
 
-Full automation of security for any type of Python projects
-(e.g. web projects using cloud services).
+TBD
 
 ## Self-assessment use
 
@@ -112,9 +97,9 @@ __It should be extended by adding project-specific security information.__
 
 <!-- pyml disable-num-lines 5 line-length-->
 
-| Component | Applicability | Description of Importance                                                                                                                                                                                                                                  |
-| --------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| template  | Critical      | Base GitHub template of the repository provided by `opennudge`. Used to provide initial security posture (pipelines, pre-commit, practices, hardening etc.) See [open-nudge/opentemplate](https://github.com/open-nudge/opentemplate) for more information |
+| Component | Applicability | Description of Importance                                                                                                                                                                                                                        |
+| --------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| template  | Critical      | Base GitHub template of the repository provided by `opennudge`. Used to provide initial security posture (pipelines, pre-commit, practices, hardening etc.) See [open-nudge/lintkit](https://github.com/open-nudge/lintkit) for more information |
 
 ## Project compliance
 
@@ -149,22 +134,21 @@ This project is a part of the Python ecosystem.
 
 ## Security issue resolution
 
-The [`open-nudge/opentemplate`](https://github.com/open-nudge/opentemplate)
+The [`open-nudge/lintkit`](https://github.com/open-nudge/lintkit)
 security policy is maintained in the
-[`SECURITY.md`](https://github.com/open-nudge/opentemplate/blob/master/SECURITY.md)
+[`SECURITY.md`](https://github.com/open-nudge/lintkit/blob/master/SECURITY.md)
 file.
 
 ### Responsible disclosure practice
 
-The [`open-nudge/opentemplate`](https://github.com/open-nudge/opentemplate)
+The [`open-nudge/lintkit`](https://github.com/open-nudge/lintkit)
 accepts vulnerability reports as outlined in the security policy defined in
-[`SECURITY.md`](https://github.com/open-nudge/opentemplate/blob/master/SECURITY.md#reporting-a-vulnerability.)
+[`SECURITY.md`](https://github.com/open-nudge/lintkit/blob/master/SECURITY.md#reporting-a-vulnerability.)
 file.
 
 ### Incident response
 
-Project maintainers will respond to security incidents privately
-on a case-by-case basis.
+TBD
 
 ## Appendix
 
