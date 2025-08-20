@@ -1,0 +1,121 @@
+# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileContributor: szymonmaszke <github@maszke.co>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+"""Global `lintkit` settings.
+
+Warning:
+    Variables in this module __should be set by the linter creator__.
+
+Warning:
+    Some variables __might__ be defined by end-users, but it is not
+    a common case.
+
+"""
+
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from . import type_definitions
+
+from . import error
+from . import output as output_module
+
+name: str | None = None
+"""The name of the linter.
+
+Warning:
+    Has to be set before linter usage, usually
+    done at the level of `linter` module creation,
+    __not by the end user__ (user of linter).
+
+"""
+
+output: type_definitions.Output | None = None
+"""The output/printing function.
+
+By default (if `None`), will use [`lintkit.output.rich`](output.rich)
+if the `rich` library is installed, otherwise
+[`lintkit.output.standard`](output.standard).
+
+Note:
+    Custom function could be provided __by the creator or user__, see
+    [`lintkit.output`](output) module for more information.
+"""
+
+ignore_line: str = ".* noqa: .*{name}{code}.*"
+"""The regex pattern registering a line to be ignored.
+
+Note:
+    By default will match any line containing ` noqa: {name}{code}`,
+    possibly with multiple errors on the same line, e.g.
+    ```# noqa: E123, E456``` or ```# noqa: E123 E456 E789```.
+"""
+
+ignore_file: str = ".* noqa-file: [^\n]*{name}{code}.*[^\n]*"
+"""The regex pattern indicating the error should be ignored in the whole file.
+
+Note:
+    By default will match any line containing ` noqa: {name}{code}`,
+    possibly with multiple errors on the same line, e.g.
+    ```# noqa: E123, E456``` or ```# noqa: E123 E456 E789```.
+"""
+
+ignore_range_start: str = ".* noqa-start: .*{name}{code}.*"
+"""The regex pattern registering a line to be ignored.
+
+Warning:
+    User has to provide `ignore_range_end` otherwise an error will
+    be raised.
+
+Note:
+    By default will match any line containing `# noqa-file: {name}{code}`,
+    possibly with multiple errors on the same line, e.g.
+    ```# noqa: E123, E456``` or ```# noqa: E123 E456 E789```.
+"""
+
+ignore_range_end: str = ".* noqa-end: .*{name}{code}.*"
+"""The regex pattern registering a line to be ignored.
+
+Warning:
+    User has to provide `ignore_range_start`, otherwise this
+    `noqa` will have no effect.
+
+Note:
+    By default will match any line containing `# noqa-file: {name}{code}`,
+    possibly with multiple errors on the same line, e.g.
+    ```# noqa: E123, E456``` or ```# noqa: E123 E456 E789```.
+"""
+
+
+# Used internally by `rule.Rule`
+def _name() -> str:  # pyright: ignore[reportUnusedFunction]
+    """Get the linter name.
+
+    Returns:
+        The linter name
+
+    Raises:
+        LinterNameMissingError: If the linter name is not set
+    """
+    if name is None:
+        raise error.NameMissingError
+    return name
+
+
+# Used internally by `rule.Rule`
+def _output() -> type_definitions.Output:  # pyright: ignore[reportUnusedFunction]
+    """Get the output function.
+
+    Returns:
+        The output function
+
+    Raises:
+        OutputFunctionMissingError: If the output function is not set
+    """
+    if output is None:
+        return output_module._default()  # noqa: SLF001
+    return output

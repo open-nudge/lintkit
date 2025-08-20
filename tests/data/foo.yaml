@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileContributor: szymonmaszke <github@maszke.co>
+#
+# SPDX-License-Identifier: Apache-2.0
+
+---
+this:
+  test: "is a test"
+another:
+  - false
+  - true
+dont:
+  know: 123
+  why:
+    - 456
+    - 789
+...

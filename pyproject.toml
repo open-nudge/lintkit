@@ -71,6 +71,26 @@ dynamic = [ "version" ]
 ###############################################################################
 
 dependencies = [
+  "wrapt>=1",
+]
+
+optional-dependencies.rich= [
+  "rich>=13",
+]
+optional-dependencies.toml = [
+  "tomlkit>=0.13.3",
+]
+optional-dependencies.yaml = [
+  "ruamel.yaml>=0.18.14",
+]
+
+optional-dependencies.output = [
+  "lintkit[rich]",
+]
+optional-dependencies.all = [
+  "lintkit[output]",
+  "lintkit[yaml]",
+  "lintkit[toml]",
 ]
 
 urls.Changelog = "https://github.com/open-nudge/lintkit/blob/master/CHANGELOG.md"
@@ -303,6 +323,11 @@ unsafe-fixes = false
 show-fixes = true
 
 format.docstring-code-format = true
+
+lint.external = [
+  "TEST",
+]
+
 lint.select = [
   "ALL",
 ]
