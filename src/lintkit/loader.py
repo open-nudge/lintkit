@@ -148,8 +148,8 @@ class Loader(abc.ABC):
 class File(Loader):
     """Load whole `file`.
 
-    If this `loader` is used, you work directly on a `pathlib.Path` object,
-    hence this `load` is essentially a no-op.
+    If this `loader` is used, you will likely work directly
+    on a `pathlib.Path` object, hence this `load` is essentially a no-op.
 
     Note:
         As `rule` already has the `file` attribute, this loader
@@ -163,11 +163,25 @@ class File(Loader):
     def skip(cls, _: pathlib.Path, __: str) -> bool:  # pyright: ignore [reportImplicitOverride, reportIncompatibleMethodOverride]
         """Never skip loading.
 
+        Important:
+            If you wish to target a file with specific extension
+            you can update this method, see below.
+
+        Example:
+            ```python
+            import lintkit
+
+
+            class PythonFile(lintkit.loader.File):
+                def skip(cls, filename: pathlib.Path, _: str) -> bool:
+                    return filename.suffix != ".py"
+            ```
+
         Args:
             _:
-                The path to the file being checked (not used).
+                The path to the file being checked (not used by default).
             __:
-                The content of the file (not used).
+                The content of the file (not used by default).
 
         Returns:
             `False` always, as this loader should never be skipped.
@@ -445,8 +459,9 @@ if available.YAML:
     import ruamel.yaml
 
     P = typing.ParamSpec("P")
+    T = typing.TypeVar("T")
 
-    def _decorator(func: Callable[P, typing.Any]) -> Callable[P, Value]:
+    def _decorator(func: Callable[P, T]) -> Callable[P, Value[T]]:
         """Decorator to wrap the return value of a YAML tree in `Value`.
 
         Args:
@@ -457,7 +472,7 @@ if available.YAML:
         """
 
         @functools.wraps(func)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> Value:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> Value[T]:
             """Wrapper function to convert the return value to `Value`.
 
             Args:

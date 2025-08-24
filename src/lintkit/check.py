@@ -3,7 +3,13 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""Check mixins used for creation of `lintkit.rule` rules."""
+"""Check `mixins` used for creation of `lintkit.rule` rules.
+
+Info:
+    This module is one of the three core modules used to define
+    rules (e.g. your [`lintkit.rule.Rule`][] must use this `mixin`)
+
+"""
 
 from __future__ import annotations
 
@@ -17,15 +23,16 @@ if typing.TYPE_CHECKING:
     from collections.abc import Hashable, Iterable
 
     from . import type_definitions
+    from ._value import Value
 
 T = typing.TypeVar("T")
 
 
 class Check(abc.ABC):
-    """Base class for performing a `value` check."""
+    """Base class (interface) for performing checks against `value`."""
 
     @abc.abstractmethod
-    def check(self, value: typing.Any) -> bool:
+    def check(self, value: Value[typing.Any] | None) -> bool:
         """Perform the check on a certain `value`.
 
         Args:
@@ -39,7 +46,25 @@ class Check(abc.ABC):
 
 
 class Regex(Check, abc.ABC):
-    """Check if the value matches a regex pattern."""
+    """Check if the value matches a regex pattern.
+
+    Note:
+        This `class` uses Python's
+        [`re.search`](https://docs.python.org/3/library/re.html#re.search)
+        internally.
+
+    Example:
+    ```python
+    class MyRegex(lintkit.check.Regex):
+        def regex(self) -> str:
+            return ".*"
+
+
+    # Every string will match
+    MyRegex().check("tout sera inclus")
+    ```
+
+    """
 
     @abc.abstractmethod
     def regex(self) -> str:
@@ -60,34 +85,41 @@ class Regex(Check, abc.ABC):
 
         Note:
             See
-            [python documentation](https://docs.python.org/3/library/re.html#flags)
+            [`re` flags](https://docs.python.org/3/library/re.html#flags)
             for more information.
 
         Returns:
-            No flag by default (`0` or `re.NOFLAG`, see
-            [here](https://docs.python.org/3/library/re.html#re.NOFLAG)
-            for more information).
+            Flag to apply for `re.search`; `0` by default, see `re.NOFLAG`
+                [here](https://docs.python.org/3/library/re.html#re.NOFLAG)
+                for more information.
         """
         return re.NOFLAG
 
-    def check(self, value: str) -> bool:  # pyright: ignore[reportImplicitOverride]
+    def check(self, value: Value[str | None]) -> bool:  # pyright: ignore[reportImplicitOverride]
         """Check if the node matches the regex pattern.
 
         Note:
             [`re.search`](https://docs.python.org/3/library/re.html#re.search)
-            is used to perform the check.
+            is used to perform the check, result is checked against `None`.
 
         Args:
             value:
                 Value to check.
 
         Returns:
-            True if the `value` matches the regex pattern,
-            False otherwise.
+            `True` if the `value` matches the regex pattern,
+            `False` otherwise.
 
         """
+        # Have to unpack `Value` due to re.compile checks allowing only str
         return (
-            re.search(self.regex(), value, flags=self.regex_flags()) is not None
+            value.__wrapped__ is None
+            or re.search(
+                self.regex(),
+                value.__wrapped__,  # pyright: ignore[reportUnknownArgumentType]
+                flags=self.regex_flags(),
+            )
+            is not None
         )
 
 
@@ -107,14 +139,13 @@ class Contains(Check, abc.ABC):
     Now every item supporting `__getitem__` and `__contains__` methods can be
     checked for containing `value["a"]["b"]`, for example:
 
-        ```python
-        contains = {"a": {"b": 1}}
-        does_not_contain = {"a": {"c": 1}}
+    ```python
+    contains = {"a": {"b": 1}}
+    does_not_contain = {"a": {"c": 1}}
 
-        assert ContainsAB().check(contains) is True
-        assert ContainsAB().check(does_not_contain) is False
-        ```
-
+    assert ContainsAB().check(contains) is True
+    assert ContainsAB().check(does_not_contain) is False
+    ```
     """
 
     @abc.abstractmethod
@@ -134,8 +165,11 @@ class Contains(Check, abc.ABC):
         """
         raise NotImplementedError
 
-    def check(self, value: type_definitions.GetItem) -> bool:  # pyright: ignore[reportImplicitOverride]
-        """Check if the node contains the word.
+    def check(  # pyright: ignore[reportImplicitOverride]
+        self,
+        value: Value[type_definitions.GetItem | None],
+    ) -> bool:
+        """Check if the `value` contains `keys`.
 
         Args:
             value:
@@ -158,34 +192,3 @@ class Contains(Check, abc.ABC):
             current_value = current_value[key]
 
         return True
-
-
-# Change to protocol here
-def invert(check: type[Check]) -> type[Check]:
-    """Function inverting a given `Check` class.
-
-    Example:
-    ```python
-    class ContainsAB(invert(Contains)):
-        def keys(self):
-            return ["a", "b"]
-    ```
-
-    This will create a check that verifies if the value does not
-    contain the specified keys.
-
-    """
-
-    class InvertedCheck(check):
-        """Inverted version of the given `Check` class."""
-
-        def check(self, value: typing.Any) -> bool:  # pyright: ignore[reportImplicitOverride]
-            """Reverse the check result of the original class.
-
-            Args:
-                value:
-                    Value to check.
-            """
-            return not super().check(value)  # pyright: ignore[reportAbstractUsage]
-
-    return InvertedCheck

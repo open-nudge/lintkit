@@ -29,9 +29,53 @@ def run(
 ) -> Iterator[tuple[bool, r.Rule]] | bool:
     """Run all the rules on a given file.
 
+    Caution:
+        This function has two modes; one returns `bool`
+        indicating whether __any rule raised any error__
+        (the default), the second one returns
+        __all rules and their error codes__ via an `iterator`.
+
+    Tip:
+        Use `output=False` if you create a custom linter
+        and __only want to return the appropriate exit code__
+        (most common usage)
+
+    An example of minimal linter:
+
     Example:
-    ```python
-    ```
+        ```python
+        import sys
+
+        import lintkit
+
+        # Mini linter over two files
+        # Assuming appropriate rules were already defined
+
+
+        def linter(*files: str):
+            sys.exit(lintkit.run(*files))
+
+
+        linter("a.py", "~/user/goo.py")
+        ```
+
+    An example of iteration:
+
+    Example:
+        ```python
+        import lintkit
+
+        for failed, rule in lintkit.run("file.yml", "another.yml", output=True):
+            print(f"Rule {rule} returned with an exit code {failed}")
+        ```
+
+    Tip:
+        `output=True` (iteration mode) allows to gather general
+        statistics from each rule and adjust the output to your
+        liking.
+
+    Warning:
+        `exclude_codes` takes precedence over `include_codes`!
 
     Args:
         files:
@@ -43,13 +87,14 @@ def run(
             Warning: `exclude_codes` takes precedence over `include_codes`.
         end_mode:
             Whether to stop after the first error or run all rules.
+            By default runs all rules.
         output:
             If `True`, returns an iterator over all rules and their outputs.
             If `False`, returns whether any rule raised an error.
 
     Returns:
         An iterator over all rules and their outputs OR a boolean indicating
-        whether any rule raised an error.
+            whether any rule raised an error.
     """
     generator_or_callable = _run(
         *files,

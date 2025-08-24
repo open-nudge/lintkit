@@ -36,7 +36,7 @@ class Message:
 
     """
 
-    def message(self, _: lintkit.Value | None = None) -> str:
+    def message(self, _: lintkit.Value[typing.Any] | None = None) -> str:
         """Return an empty message.
 
         Args:
@@ -99,7 +99,7 @@ class Python(lintkit.loader.Python, abc.ABC):
         """
         raise NotImplementedError
 
-    def values(self) -> Iterable[lintkit.Value]:
+    def values(self) -> Iterable[lintkit.Value[str]]:
         """Yield `Value` representations of a given `node`.
 
         Yields:
@@ -131,7 +131,7 @@ class TestNode(Regex, Python, lintkit.rule.Node):
         """
         return ast.FunctionDef
 
-    def process_node(self, node: ast.AST) -> lintkit.Value:
+    def process_node(self, node: ast.AST) -> str:
         """Process `node` and return its name.
 
         Args:
@@ -224,7 +224,7 @@ class ConfigBase(Message, Contains):
 class JSON(ConfigBase, lintkit.loader.JSON, lintkit.rule.Node, code=201):
     """Rule to test JSON loader functionality."""
 
-    def values(self) -> Iterable[lintkit.Value]:
+    def values(self) -> Iterable[lintkit.Value[dict[typing.Any, typing.Any]]]:
         """Yield wrapped data from the loader.
 
         Yields:
@@ -232,13 +232,13 @@ class JSON(ConfigBase, lintkit.loader.JSON, lintkit.rule.Node, code=201):
 
         """
         # Check data/foo.toml, it should contain a nested structure
-        yield lintkit.Value(self.getitem("data"))
+        yield lintkit.Value.from_json(self.getitem("data"))
 
 
 class YAML(ConfigBase, lintkit.loader.YAML, lintkit.rule.Node, code=204):
     """Rule to test YAML loader functionality."""
 
-    def values(self) -> Iterable[lintkit.Value]:
+    def values(self) -> Iterable[lintkit.Value[dict[typing.Any, typing.Any]]]:
         """Yield the `data` from the loader.
 
         Warning:
@@ -255,7 +255,7 @@ class YAML(ConfigBase, lintkit.loader.YAML, lintkit.rule.Node, code=204):
 class TOML(ConfigBase, lintkit.loader.TOML, lintkit.rule.Node, code=202):
     """Rule to test TOML loader functionality."""
 
-    def values(self) -> Iterable[lintkit.Value]:
+    def values(self) -> Iterable[lintkit.Value[dict[typing.Any, typing.Any]]]:
         """Yield wrapped data via `from_toml` method.
 
         Yields:
@@ -286,7 +286,7 @@ class FileNameCheck(
         """
         return "test_loader.py"
 
-    def values(self) -> Iterable[lintkit.Value]:
+    def values(self) -> Iterable[lintkit.Value[str]]:
         """Yield the file name as a `Value`.
 
         Yields:

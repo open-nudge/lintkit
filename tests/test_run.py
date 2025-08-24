@@ -48,7 +48,7 @@ def test_run_codes(
             assert rule.code == 0
 
 
-@pytest.mark.parametrize("output", ("rich", "builtin", None))
+@pytest.mark.parametrize("output", ("rich", "stdout", None))
 def test_run_output_smoke(
     output: str | None,
     request: pytest.FixtureRequest,

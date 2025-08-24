@@ -105,10 +105,10 @@ def spans(rule: Rule, lines: list[str]) -> Iterator[Span]:
 
     """
     start_regex = re.compile(
-        settings.ignore_range_start.format(name=settings.name, code=rule.code)
+        settings.ignore_span_start.format(name=settings.name, code=rule.code)
     )
     end_regex = re.compile(
-        settings.ignore_range_end.format(name=settings.name, code=rule.code)
+        settings.ignore_span_end.format(name=settings.name, code=rule.code)
     )
 
     start = None

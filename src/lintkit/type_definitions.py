@@ -6,8 +6,8 @@
 """Type definitions used in `lintkit`.
 
 Note:
-    This module is likely will not be used directly by
-    linter creators, but it is used internally.
+    This module is mostly used internally, unlikely to
+    be directly useful for linter creators.
 
 """
 
@@ -35,17 +35,18 @@ Output = typing.Callable[
 ]
 """Type of function which is used to output errors.
 
-Note:
-    See `output` and `settings.output` for more information.
+Info:
+    See [`lintkit.output`][] and [`lintkit.settings.output`][]
+    for more information.
 
-Important:
+Tip:
     Custom `output` functions should follow this signature.
 
 """
 
 
 class GetItem(typing.Protocol):
-    """Protocol used to type object with `__getitem__` and `__contains__`."""
+    """Protocol used to type objects with `__getitem__` and `__contains__`."""
 
     def __getitem__(self, key: Hashable) -> typing.Any:
         """Signature of `__getitem__` method.

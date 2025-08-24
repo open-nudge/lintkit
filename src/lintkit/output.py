@@ -5,7 +5,7 @@
 
 """Out-of-the-box output functions for the linter.
 
-## Default output
+## Default
 
 Note:
     This module provides a default function, which
@@ -24,7 +24,7 @@ For example:
 "/home/user1/foo.py:27:31  SUPERULE12: This line is not super, use `super`"
 ```
 
-## Changing `lintkit` output function
+## Custom
 
 To change `default` output you can use one of the provided
 options, e.g.:
@@ -33,7 +33,7 @@ options, e.g.:
 import lintkit
 
 # To set `print` as the linter output.
-lintkit.settings.output = lintkit.output.builtin
+lintkit.settings.output = lintkit.output.stdout
 ```
 
 You can also define your own output function as long
@@ -57,13 +57,13 @@ def my_output(
 which should (somehow) output the linter results (e.g. to a file).
 
 Note:
-    You don't have to use all of the value (e.g. `end_line`),
+    You don't have to use all values (e.g. `end_line`),
     use only the values you find necessary (provided `output` functions do not
     use `end_line` nor `end_column` even if these are present.
 
 Warning:
     Different `loader`s __might not__ provide some values
-    (these which are, possibly, `None` above), your custom function
+    (these which might be `None` above), your custom function
     should handle these cases.
 
 """
@@ -80,7 +80,7 @@ if typing.TYPE_CHECKING:
 from . import available
 
 
-def builtin(  # noqa: PLR0913
+def stdout(  # noqa: PLR0913
     name: str,
     code: int,
     message: str,
@@ -92,7 +92,7 @@ def builtin(  # noqa: PLR0913
 ) -> None:
     """Output linter message to `stdout` using `print`.
 
-    Note:
+    Info:
         Default `output` if [`rich`](https://github.com/Textualize/rich)
         is not available.
 
@@ -135,9 +135,18 @@ if available.RICH:
     ) -> None:
         """Output linter message to `stdout` using `rich`.
 
+        Info:
+            Default `output` function (if `rich` library
+            is available).
+
         Note:
             See [here](https://github.com/Textualize/rich) for more
-            information on the `rich` library.
+            information about the `rich` library.
+
+        Tip:
+            You can install compatible `rich` using `extras`,
+            e.g. `pip install lintkit[rich]` or
+            `pip install lintkit[output]`
 
         Args:
             name:
@@ -170,7 +179,7 @@ def _default() -> type_definitions.Output:  # pyright: ignore[reportUnusedFuncti
     """Get the default output function.
 
     Will return the `rich` output function if the `rich` library is installed,
-    otherwise the `builtin` output function.
+    otherwise the `stdout` output function.
 
     Warning:
         This function is used internally and should not be called directly.
@@ -180,4 +189,4 @@ def _default() -> type_definitions.Output:  # pyright: ignore[reportUnusedFuncti
     """
     if available.RICH:
         return rich
-    return builtin  # pragma: no cover
+    return stdout  # pragma: no cover

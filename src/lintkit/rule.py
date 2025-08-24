@@ -75,7 +75,7 @@ class Rule(loader.Loader, check.Check, abc.ABC):
     """Text spans where the rules should be ignored."""
 
     @abc.abstractmethod
-    def values(self) -> Iterable[Value]:
+    def values(self) -> Iterable[Value[typing.Any]]:
         """Function returning values (e.g. `ast.Node`) to check against.
 
         Warning:
@@ -172,7 +172,7 @@ class Rule(loader.Loader, check.Check, abc.ABC):
     def error(
         self,
         message: str,
-        value: Value,
+        value: Value[T],
     ) -> bool:
         """Print an error message.
 
@@ -212,7 +212,7 @@ class Rule(loader.Loader, check.Check, abc.ABC):
     # Refactoring this method might break pyright
     # (e.g. verifying attributes are set will not be picked up
     # if done in a separate helper method).
-    def ignored(self, value: Value) -> bool:  # noqa: C901
+    def ignored(self, value: Value[T]) -> bool:  # noqa: C901
         """Check if the value should be ignored by this `rule`.
 
         Note:
@@ -372,7 +372,7 @@ class Node(Rule, abc.ABC):
             if self.ignored(value):
                 yield False
             else:
-                error = self.check(value.__wrapped__)
+                error = self.check(value)
                 if not error:
                     yield False
                 else:

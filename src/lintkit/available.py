@@ -3,7 +3,23 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""Module defining available extras."""
+"""Information about available extra libraries.
+
+Note:
+    You can install these packages by specifying `extras`, e.g.
+    `pip install lintkit[rich, toml, yaml]`
+
+One can use the values "as is":
+
+Example:
+    ```python
+    import lintkit
+
+    if lintkit.available.RICH:
+        print("rich library installed!")
+    ```
+
+"""
 
 from __future__ import annotations
 
@@ -26,19 +42,19 @@ def _modules_exist(*names: str) -> bool:
 
 
 RICH: bool = _modules_exist("rich")
-"""Whether [Rich](https://github.com/Textualize/rich) is available.
+"""`Bool` indicating [rich](https://github.com/Textualize/rich) availability.
 
-It is used for pretty printing and enhanced terminal output.
+Used automatically for pretty printing and colorful terminal output.
 """
 
 YAML: bool = _modules_exist("ruamel")
-"""Whether [ruamel.yaml](https://yaml.dev/doc/ruamel-yaml/) is available.
+"""`Bool` indicating [ruamel](https://yaml.dev/doc/ruamel-yaml/) availability.
 
-It is used to parse YAML files and create their rules.
+Used to parse `YAML` and create rules for it.
 """
 
 TOML: bool = _modules_exist("tomlkit")
-"""Whether [tomlkit](https://tomlkit.readthedocs.io/en/latest/) is available.
+"""`Bool` indicating [tomlkit](https://tomlkit.readthedocs.io) availability.
 
-It is used to parse TOML files and create their rules.
+Used to parse `TOML` and create rules for it.
 """

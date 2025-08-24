@@ -5,10 +5,33 @@
 
 """Official `lintkit` API documentation.
 
-About:
-    `lintkit` is a Python library allowing you to quickly create
-    custom linters, while being flexible enough to be used in a complex
-    settings.
+## General
+
+`lintkit` is a Python library allowing you to quickly create
+custom linters, while being flexible enough to be used in a complex
+settings.
+
+Warning:
+    Start with [tutorials](/docs/tutorials) to get a feel of the framework.
+
+## Core modules
+
+When creating custom linter(s) you will be (likely) interested in these
+core modules:
+
+- [`lintkit.rule`][] - core class for creating linting rules
+- [`lintkit.loader`][] - file loaders mixins (e.g. `python` or `YAML`),
+    tailoring rules to data
+- [`lintkit.check`][] - what is `check`ed by a rule
+
+and the following functionalities from [`lintkit`][]:
+
+- [`Value`][lintkit.Value] - define rule output in a reusable manner
+- [`run`][lintkit.run] - run all (or subset of) rules on a given set of
+    files
+
+Tip:
+    Roam around the docs to get a better feel of what's available.
 
 """
 

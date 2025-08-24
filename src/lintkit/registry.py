@@ -5,9 +5,14 @@
 
 """Module containing registered rules and functions to update/discover them.
 
-Warning:
-    Provided functions are __read-only__, registry itself
-    is managed automatically during `rule` creation.
+Info:
+    Provided functions __do not change the registry contents__
+    as it is managed automatically during `rule` creation.
+
+Tip:
+    When creating custom linter, you should check
+    [`lintkit.registry.inject`][]
+    function for an option to easily pass configuration data.
 
 """
 
@@ -97,8 +102,6 @@ def query(
         exclude_codes:
             The codes of the rules to exclude, if any.
             (takes precedence over `include_codes`).
-        file_only:
-            Whether to only return file-based rules.
 
     Returns:
         An iterator over the rules that match the query.

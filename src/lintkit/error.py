@@ -88,11 +88,56 @@ class LintkitInternalError(LintkitError):
 class IgnoreRangeError(LintkitError):
     """Raised when the end of the ignore range is missing.
 
-    Informs the user when the noqa-range was started in a file,
-    but was not explicitly ended.
+    Note:
+        Informs the user when the `noqa-range`/range ignore
+        was started in a file, but was not explicitly ended.
+
+    Tip:
+        This error is raised automatically by `lintkit` when rules are ran,
+        no need for explicit raising.
+
+    For this [`lintkit.settings.ignore_span_start`][] and
+    [`lintkit.settings.ignore_span_end`][]:
+
+    ```python
+    import lintkit
+
+    # Anything between igstart: <NAME><CODE> and igend: <NAME><CODE>
+    lintkit.settings.ignore_span_start: str = ".* igstart: .*{name}{code}.*"
+    lintkit.settings.ignore_span_end: str = ".* igend: .*{name}{code}.*"
+    ```
+
+    The following spans would throw `IgnoreRangeError`:
+
+    ```python
+    # igstart: BU137
+
+
+    def foo():
+        pass
+
+
+    # Different error code!
+    # igend: BU213
+
+
+    # igstart: BU137
+    def bar():
+        pass
+
+
+    # No igend at all!
+    ```
+
+    This would throw:
+
+    ```python
+    End of ignore range missing, please specify it.
+    Start of the range was at line '0' with content: '# igstart: BU137'.
+    ```
 
     Note:
-        See `settings.ignore_range_start` and `settings.ignore_range_end`
+        See `settings.ignore_span_start` and `settings.ignore_span_end`
         for more information.
 
     """
@@ -110,7 +155,7 @@ class IgnoreRangeError(LintkitError):
         """
         self.message = (
             "End of ignore range missing, please specify it. "
-            f"Start of the range was at line `{start}` with content: {line}."
+            f"Start of the range was at line '{start}' with content: '{line}'."
         )
         super().__init__(self.message)
 
@@ -120,15 +165,21 @@ class NameMissingError(LintkitError):
     """Raised when the linter's `lintkit.settings.name` was not set.
 
     Note:
-        Informs the linter creator `lintkit.settings.name` was not set,
+        __Informs the linter creator__ `lintkit.settings.name` was not set,
         as this value should be predefined before end users use the linter.
+
+    Error output:
+
+    ```python
+    Linter name missing (please set 'lintkit.settings.name' variable)
+    ```
 
     """
 
     def __init__(self) -> None:
         """Initialize the error."""
         self.message = (
-            "Linter name missing (please set `lintkit.settings.name` variable)."
+            "Linter name missing (please set 'lintkit.settings.name' variable)."
         )
         super().__init__(self.message)
 
@@ -138,8 +189,24 @@ class CodeNegativeError(LintkitError):
     """Raised when a rule with the same code already exists.
 
     Note:
-        Informs the linter creator, that his rule's code
+        __Informs the linter creator__, that the rule's code
         was negative, which is not allowed.
+
+    Example of offending code:
+
+    ```python
+    import lintkit
+
+
+    class MyRule(lintkit.rule.Node, code=-1):
+        pass
+    ```
+
+    which raises:
+
+    ```python
+    Rule 'MyRule' has code '-1' which should be a positive 'int'.
+    ```
 
     """
 
@@ -154,7 +221,7 @@ class CodeNegativeError(LintkitError):
         """
         self.message = (
             f"Rule '{type(rule).__name__}' has code '{code}' "
-            f"which should be a positive `integer`."
+            f"which should be a positive 'int'."
         )
         super().__init__(self.message)
 
@@ -164,8 +231,29 @@ class CodeExistsError(LintkitError):
     """Raised when a rule with the same code already exists.
 
     Note:
-        Informs the linter creator, that his rule code
+        __Informs the linter creator__, that the rule code
         was already registered by another rule.
+
+    Example of offending code:
+
+    ```python
+    import lintkit
+
+
+    class FirstRule(lintkit.rule.Node, code=12):
+        pass
+
+
+    class SecondRule(lintkit.rule.Node, code=12):
+        pass
+    ```
+
+    which raises:
+
+    ```python
+    Rule 'SecondRule' cannot be registered with code '12'
+    as it is already taken by 'FirstRule'.
+    ```
 
     """
 
@@ -212,7 +300,16 @@ class CodeMissingError(LintkitError):
         pass  # Implementation omitted
 
 
+    # Raised during instantiation,
+    # usually during `lintkit.run` usage
     rule = MyRule()  # raises CodeMissingError
+    ```
+
+    which raises:
+
+    ```python
+    Rule 'MyRule' is missing a 'code' attribute
+    (pass it during inheritance, e.g. 'MyRule(lintkit.rule.Node, code=2731)').
     ```
 
     """
@@ -227,8 +324,8 @@ class CodeMissingError(LintkitError):
         """
         name = type(rule).__name__
         self.message = (
-            f"Rule '{name}' is missing a `code` attribute"
+            f"Rule '{name}' is missing a 'code' attribute"
             "(pass it during inheritance, e.g. "
-            f"`{name}(lintkit.rule.Node, code=2731)`)."
+            f"'{name}(lintkit.rule.Node, code=2731)')."
         )
         super().__init__(self.message)

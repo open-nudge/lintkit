@@ -6,10 +6,6 @@
 """Unified `Value` type allowing rule application over multiple datatypes.
 
 Warning:
-    `YAML` __is already wrapped with `Value`__ during
-    data loading, no need to do it explicitly.
-
-Warning:
     Multiline `ignore`s or skips are not supported
     for `TOML` due to `tomlkit` not returning line numbers
     of items.
@@ -37,66 +33,43 @@ from . import available
 if typing.TYPE_CHECKING:
     import ast
 
-
-@dataclasses.dataclass
-class Pointer:
-    """Pointer to the source code.
-
-    Warning:
-        This class is not intended to be used directly.
-        It is used internally by the `Value` class to represent
-        line and column numbers.
-
-    Attributes:
-        value:
-            Line or column number, or None if not available.
-            If None, it is represented as "-".
-
-    """
-
-    value: int | None = None
-
-    def __str__(self) -> str:  # pyright: ignore [reportImplicitOverride]
-        """Return string representation of the pointer.
-
-        Returns:
-            String representation of the pointer value, or `"-"` if `None`.
-
-        """
-        if self.value is None:
-            return "-"
-        return str(self.value)
-
-    def __bool__(self) -> bool:
-        """Check if the pointer has a value.
-
-        Returns:
-            `True` if the pointer has a value, `False` if it is `None`.
-
-        """
-        return self.value is not None
-
-    def __add__(self, other: int) -> Pointer:
-        """Add an integer to the pointer value.
-
-        Allows to offset the pointer by a specific number
-        (usually for compatibility reasons between different
-        libraries and formats).
-
-        Args:
-            other: Integer to add to the pointer value.
-
-        Returns:
-            A new `Pointer` instance with the updated value.
-
-        """
-        if self.value is None:
-            return Pointer()  # pragma: no cover
-        return Pointer(self.value + other)
+T = typing.TypeVar("T")
 
 
-class Value(wrapt.ObjectProxy):  # pyright: ignore [reportUntypedBaseClass]
-    """Pointer to a specific location in the code.
+class Value(wrapt.ObjectProxy, typing.Generic[T]):  # pyright: ignore [reportUntypedBaseClass]
+    """`Value` used by rules for verification.
+
+    Note:
+        Instance of this type should __always__ be returned from
+        [`lintkit.rule.Rule.values`][]
+
+    Tip:
+        You should use objects of this class __just like you would
+        use the `value` directly.__ as it is a "perfect proxy".
+        Its other functionalities __are used internally__ (e.g. `Pointer`)
+
+    Can be essentially anything (e.g. `dict` from parsed `JSON`,
+    `string` value from that `dict` or some other rule created value).
+
+    It is later used by the pipeline to verify whether this value
+    complies with the `Rule` itself.
+
+    Tip:
+        Use creation static methods (
+        [`lintkit.Value.from_python`][],
+        [`lintkit.Value.from_toml`][],
+        or [`lintkit.Value.from_json`][]
+        ) when returning
+        values from rules inheriting from
+        [`lintkit.loader.Python`][],
+        [`lintkit.loader.TOML`][] or
+        [`lintkit.loader.JSON`][]
+        respectively.
+
+    Caution:
+        `YAML` __is already wrapped by [`lintkit.Value`][]__ during
+        when using [`lintkit.loader.YAML`][], no need to process
+        them within `values` function.
 
     Note:
         This `class` acts as a "perfect proxy" for end users
@@ -104,28 +77,31 @@ class Value(wrapt.ObjectProxy):  # pyright: ignore [reportUntypedBaseClass]
         (which means wrapped `value` should be usable just like
         the original one).
 
-    Warning:
-        Use `Value.from_python`, `Value.from_toml` when returning
-        values from rules based on `loader.Python` and `loader.TOML`
-        respectively.
 
     Attributes:
-        value:
+        value (typing.Any):
             Value to check against the rules.
-        start_line:
+        comment (str | None):
+            Source code comment related to the object, if any.
+            __Used internally__
+        start_line (Pointer):
             Line number (represented as a `Pointer`).
-        start_column:
+            __Used internally__
+        start_column (Pointer):
             Column number (represented as a `Pointer`).
-        end_line:
+            __Used internally__
+        end_line (Pointer):
             End line number (represented as a `Pointer`).
-        end_column:
+            __Used internally__
+        end_column (Pointer):
             End column number (represented as a `Pointer`).
+            __Used internally__
 
     """
 
     def __init__(  # noqa: PLR0913
         self,
-        value: typing.Any = None,
+        value: T = None,
         start_line: Pointer | None = None,
         start_column: Pointer | None = None,
         end_line: Pointer | None = None,
@@ -151,25 +127,20 @@ class Value(wrapt.ObjectProxy):  # pyright: ignore [reportUntypedBaseClass]
         self._self_comment: str | None = comment
         self._self_metadata: dict[str, typing.Any] = kwargs
 
-    def __repr__(self) -> str:  # pyright: ignore [reportImplicitOverride]
-        """Unique representation of the value.
-
-        Returns:
-            Fully described Value including its code location.
-
-        """
-        return (
-            f"Value(value={self.__wrapped__!s}, comment={self._self_comment}, "
-            f"start_line={self._self_start_line}, start_column={self._self_start_column}, "
-            f"end_line={self._self_end_line}, end_column={self._self_end_column})"
-        )
-
     @staticmethod
-    def from_python(value: typing.Any, node: ast.AST) -> Value:
+    def from_python(value: T, node: ast.AST) -> Value[T]:
         """Create a `Value` from Python's `ast.AST` node.
 
+        Arguments:
+            value:
+                Some `Python` plain object.
+            node:
+                Python's [`ast`](https://docs.python.org/3/library/ast.html)
+                `Node` which corresponds to the `value`.
+
         Returns:
-            Given `python` node represented as `Value`.
+            Provided value with its respective Python node.
+
         """
         return Value(
             value=value,
@@ -179,24 +150,52 @@ class Value(wrapt.ObjectProxy):  # pyright: ignore [reportUntypedBaseClass]
             end_column=_optional_get(node, "end_col_offset"),
         )
 
+    @staticmethod
+    def from_json(value: T) -> Value[T]:
+        """Create a `Value` from `JSON` values.
+
+        Note:
+            As `JSON` does not support comments,
+            only `value` is necessary.
+
+        Warning:
+            Due to no comments, all ignore lines
+            are currently ignored and __only file exclusions__
+            are available.
+
+        Arguments:
+            value:
+                Some object, usually plain `Python` after parsing
+                `JSON` via
+                [standard `json`](https://docs.python.org/3/library/json.html)
+                library.
+
+        Returns:
+            `JSON` parsed data as a `Value`
+
+        """
+        return Value(value=value)
+
     if available.TOML:
 
         @staticmethod
-        def from_toml(item: typing.Any) -> Value:
+        def from_toml(item: typing.Any) -> Value[typing.Any]:
             """Create a `Value` from `tomlkit` `Item`.
 
             Warning:
                 Multiline `ignore`s or skips are not supported
-                for `TOML`.
+                for `TOML` __due to the lack of line numbers__.
 
             Warning:
                 `Value` will contain no line/column info
-                (as it is unavailable in `tomlkit`), but
-                propagates `comment` to other elements of the
+                (as it is unavailable in
+                [`tomlkit`](https://tomlkit.readthedocs.io)), but
+                propagates `comment` field to other elements of the
                 system which allows it to be used for line ignoring.
 
             Returns:
-                Given `tomlkit` `Item` represented as `Value`.
+                `tomlkit.Item` represented as `Value`.
+
             """
             return Value(
                 # Principially items may not have an `unwrap` method, e.g.
@@ -214,12 +213,12 @@ class Value(wrapt.ObjectProxy):  # pyright: ignore [reportUntypedBaseClass]
     if available.YAML:
 
         @staticmethod
-        def _from_yaml(value: typing.Any, node: typing.Any) -> Value:
+        def _from_yaml(value: T, node: typing.Any) -> Value[T]:
             """Create a Value from a modified ruamel.YAML node.
 
             Note:
                 This method is used internally and __should not be
-                used directly__ unlike their `toml` and `python`
+                used directly__ unlike `toml` and `python` or `JSON`
                 counterparts.
 
             Returns:
@@ -239,6 +238,67 @@ class Value(wrapt.ObjectProxy):  # pyright: ignore [reportUntypedBaseClass]
 
     else:  # pragma: no cover
         pass
+
+
+@dataclasses.dataclass
+class Pointer:
+    """Pointer to the source code (e.g. `start_line`).
+
+    Tip:
+        You are unlikely to need to use objects of this
+        class __at all__.
+
+    Warning:
+        This class is not intended to be instantiated directly.
+        It is used internally by the `Value` class to represent
+        line and column numbers as a lightweight wrapper.
+
+    Attributes:
+        value:
+            Line or column number, or None if not available.
+            If None, it is represented as "-".
+
+    """
+
+    value: int | None = None
+
+    def __str__(self) -> str:  # pyright: ignore [reportImplicitOverride]
+        """String representation of the pointer.
+
+        Returns:
+            String representation of the pointer value, or `"-"` if `None`.
+
+        """
+        if self.value is None:
+            return "-"
+        return str(self.value)
+
+    def __bool__(self) -> bool:
+        """Check if the pointer has a `value`.
+
+        Returns:
+            `True` if the pointer has a `value`, `False` if it is `None`.
+
+        """
+        return self.value is not None
+
+    def __add__(self, other: int) -> Pointer:
+        """Add an integer to the pointer value.
+
+        Allows to offset the pointer by a specific number
+        (usually for compatibility reasons between different
+        libraries and formats).
+
+        Args:
+            other: Integer to add to the pointer value.
+
+        Returns:
+            A new `Pointer` instance with the updated value.
+
+        """
+        if self.value is None:
+            return Pointer()  # pragma: no cover
+        return Pointer(self.value + other)
 
 
 def _optional_get(
