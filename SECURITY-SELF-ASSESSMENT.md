@@ -56,11 +56,16 @@ Source: https://tag-security.cncf.io/community/assessments/guide/self-assessment
 
 ## Overview
 
-Build your own linter in minutes - from Python code to config files (YAML, JSON, TOML)
+Build your own linter in minutes - from Python code
+to config files (YAML, JSON, TOML)
 
 ### Background
 
-TBD
+Framework for building linters/linting rules for multiple file types
+(e.g. `Python`, `YAML`, `TOML` or `JSON`).
+
+Written in Python, can target tools/libraries/frameworks, as long
+as their data is parse'able by `lintkit`.
 
 ### Actors
 
@@ -74,11 +79,16 @@ TBD
 
 ### Goals
 
-TBD
+Comprehensive framework for creating new linters focused on `Python`, but
+providing functionality for other file formats.
+
+Possibly extendable and tailorable to different frameworks
+(e.g. Kubernetes manifests or GitHub Actions).
 
 ### Non-goals
 
-TBD
+Authoritative source of code quality assessments. Linters should be
+user created and taken on a per-linter basis.
 
 ## Self-assessment use
 
@@ -148,7 +158,9 @@ file.
 
 ### Incident response
 
-TBD
+As defined in [`SECURITY.md`](https://github.com/open-nudge/cogeol/blob/master/SECURITY.md#reporting-a-vulnerability),
+usually response should take up to a few working days, if not please reach out
+at `security@opennudge.com`.
 
 ## Appendix
 

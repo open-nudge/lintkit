@@ -7,7 +7,12 @@
 
 Info:
     This module is one of the three core modules used to define
-    rules (e.g. your [`lintkit.rule.Rule`][] must use this `mixin`)
+    rules (this one __might be skipped__ though, as long as your
+    [`lintkit.rule.Rule`][] implements `check` method).
+
+Tip:
+    Check out [Advanced tutorial](/lintkit/tutorials/advanced)
+    for a usage example of [`lintkit.check`][] module.
 
 """
 
@@ -29,11 +34,22 @@ T = typing.TypeVar("T")
 
 
 class Check(abc.ABC):
-    """Base class (interface) for performing checks against `value`."""
+    """Base class (interface) for performing checks against `value`.
+
+    Tip:
+        This is an interface obtaining [`lintkit.Value`][]
+        and returning `True` if the rule was broken.
+
+    """
 
     @abc.abstractmethod
-    def check(self, value: Value[typing.Any] | None) -> bool:
+    def check(self, value: Value[typing.Any]) -> bool:
         """Perform the check on a certain `value`.
+
+        Tip:
+            Check out any tutorial
+            (e.g. [Basic tutorial](/lintkit/tutorials/basic))
+            for a usage example.
 
         Args:
             value:
@@ -54,15 +70,19 @@ class Regex(Check, abc.ABC):
         internally.
 
     Example:
-    ```python
-    class MyRegex(lintkit.check.Regex):
-        def regex(self) -> str:
-            return ".*"
+        ```python
+        class MyRegex(lintkit.check.Regex):
+            def regex(self) -> str:
+                return ".*"
 
 
-    # Every string will match
-    MyRegex().check("tout sera inclus")
-    ```
+        # Every string will match
+        MyRegex().check("tout sera inclus")
+        ```
+
+    Tip:
+        Check out [Advanced tutorial](/lintkit/tutorials/advanced)
+        for another usage example of [`lintkit.check.Regex`][] class.
 
     """
 
@@ -83,7 +103,7 @@ class Regex(Check, abc.ABC):
             This method is optional and can be overridden to provide
             different `flags` value.
 
-        Note:
+        Info:
             See
             [`re` flags](https://docs.python.org/3/library/re.html#flags)
             for more information.
@@ -98,9 +118,12 @@ class Regex(Check, abc.ABC):
     def check(self, value: Value[str | None]) -> bool:  # pyright: ignore[reportImplicitOverride]
         """Check if the node matches the regex pattern.
 
+        Success:
+            This method is already implemented for you and ready to use.
+
         Note:
             [`re.search`](https://docs.python.org/3/library/re.html#re.search)
-            is used to perform the check, result is checked against `None`.
+            is used to perform the check, its result is checked against `None`.
 
         Args:
             value:
@@ -128,24 +151,25 @@ class Contains(Check, abc.ABC):
 
     This allows users to check if a value contains a specific subitem.
 
-    Example implementation:
-
-    ```python
-    class ContainsAB(Contains):
-        def keys(self):
-            return ["a", "b"]
-    ```
+    Example:
+        ```python
+        class ContainsAB(Contains):
+            def keys(self):
+                return ["a", "b"]
+        ```
 
     Now every item supporting `__getitem__` and `__contains__` methods can be
     checked for containing `value["a"]["b"]`, for example:
 
-    ```python
-    contains = {"a": {"b": 1}}
-    does_not_contain = {"a": {"c": 1}}
+    Example:
+        ```python
+        contains = {"a": {"b": 1}}
+        does_not_contain = {"a": {"c": 1}}
 
-    assert ContainsAB().check(contains) is True
-    assert ContainsAB().check(does_not_contain) is False
-    ```
+        assert ContainsAB().check(contains) is True
+        assert ContainsAB().check(does_not_contain) is False
+        ```
+
     """
 
     @abc.abstractmethod
@@ -170,6 +194,9 @@ class Contains(Check, abc.ABC):
         value: Value[type_definitions.GetItem | None],
     ) -> bool:
         """Check if the `value` contains `keys`.
+
+        Success:
+            This method is already implemented for you and ready to use.
 
         Args:
             value:

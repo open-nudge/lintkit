@@ -15,6 +15,7 @@ on:
       - "!LICENSE.md"
       - "!docs/LICENSE.md"
       - "!LICENSES/*"
+      - "!docs/tutorials/*"
       - ".github/workflows/markdown.yml"
       - ".github/workflows/markdown-reusable.yml"
       - ".github/workflows/run-*reusable.yml"

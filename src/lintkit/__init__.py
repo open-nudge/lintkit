@@ -12,13 +12,15 @@ custom linters, while being flexible enough to be used in a complex
 settings.
 
 Warning:
-    Start with [tutorials](/docs/tutorials) to get a feel of the framework.
+    Start with [tutorials](/lintkit/tutorials) to get a feel of the framework.
 
 ## Core modules
 
 When creating custom linter(s) you will be (likely) interested in these
 core modules:
 
+- [`lintkit.settings`][] - global settings
+    (e.g. name, how `noqa`s should be named etc.)
 - [`lintkit.rule`][] - core class for creating linting rules
 - [`lintkit.loader`][] - file loaders mixins (e.g. `python` or `YAML`),
     tailoring rules to data

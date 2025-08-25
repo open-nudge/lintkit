@@ -22,11 +22,11 @@ import re
 import typing
 
 from . import error, settings
+from .loader import Loader
+from .rule import Rule
 
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
-
-    from .rule import Rule
 
 _registry: dict[int, Rule] = {}
 
@@ -133,6 +133,8 @@ def _add(rule: type[Rule], code: int) -> None:  # pyright: ignore [reportUnusedF
             The code of the rule.
 
     """
+    if not issubclass(rule, Rule) or not issubclass(rule, Loader):  # pyright: ignore[reportUnnecessaryIsInstance]
+        raise error.NotSubclassError
     if code < 0:
         raise error.CodeNegativeError(code, rule)
     if code in _registry:
@@ -140,7 +142,7 @@ def _add(rule: type[Rule], code: int) -> None:  # pyright: ignore [reportUnusedF
 
     # Save state useful in `Rule` methods
     rule.code = code
-    rule.ignore_line = re.compile(
+    rule._ignore_line = re.compile(  # noqa: SLF001
         settings.ignore_line.format(
             name=settings._name(),  # noqa: SLF001
             code=code,

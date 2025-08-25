@@ -146,9 +146,11 @@ def _run(  # noqa: C901, PLR0912
 
         # Setup and load necessary data for each rule
         for rule in rules:
-            if rule.skip(path, content) or _ignore.file(rule, content):
+            # Rule will have `skip` as it inherits from both Loader and Rule
+            if rule.skip(path, content) or _ignore.file(rule, content):  # pyright: ignore[reportAttributeAccessIssue]
                 continue
-            rule._run_load(  # noqa: SLF001
+            # Rule will have `_run_load` due to above
+            rule._run_load(  # noqa: SLF001  # pyright: ignore[reportAttributeAccessIssue]
                 path,
                 content,
                 lines,
@@ -165,7 +167,8 @@ def _run(  # noqa: C901, PLR0912
                     return
 
     for rule in rules:
-        rule._run_reset()  # noqa: SLF001
+        # Rule will have `_run_load` as it inherits from both Loader and Rule
+        rule._run_reset()  # noqa: SLF001  # pyright: ignore[reportAttributeAccessIssue]
 
     for rule in (rule for rule in rules if isinstance(rule, r.All)):
         fail = rule._run_finalize()  # noqa: SLF001

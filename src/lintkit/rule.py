@@ -5,12 +5,17 @@
 
 """Core module providing rule defining capabilities.
 
-When creating a new rule, one should subclass a specific
+When creating a new rule, one should inherit from a specific
 `Rule` subclass, namely:
 
-- `Node` for a rule that is applied on a node
-- `File` for a rule that is applied on a whole file
-- `All` for a rule that has a check applied on all files
+- [`lintkit.rule.Node`][] for a rule that is applied on a node
+- [`lintkit.rule.File`][] for a rule that is applied on a whole file
+- [`lintkit.rule.All`][] for a rule that has a check applied on all files
+
+Tip:
+    Check out [Advanced tutorial](/lintkit/tutorials/advanced)
+    and [File tutorial](/lintkit/tutorials/file) to see all of them
+    in real life examples.
 
 """
 
@@ -27,121 +32,183 @@ if typing.TYPE_CHECKING:
 
     from ._ignore import Span
 
-from . import check, loader, registry, settings
+
 from . import error as e
+from . import registry, settings
 from ._value import Value
 
 T = typing.TypeVar("T")
 
 
-class Rule(loader.Loader, check.Check, abc.ABC):
-    """Base Rule class of `lintkit`.
+class Rule(abc.ABC):
+    """Base class for all `rule`s.
 
-    Allows to quickly define new linters based on:
-
-    - a target type
-    - a code
-    - configuration
+    Warning:
+        This class __should not be used directly__.
+        Use [`lintkit.rule.Node`][],
+        [`lintkit.rule.File`][] or
+        [`lintkit.rule.All`][].
 
     """
 
     code: int | None = None
-    """Code of the rule (see `__subclass_init__` for an example).
+    """Integer code assigned to the rule.
 
-    Note:
-        Specificuing this value constitutes `rule` creation.
+    Warning:
+        Specifying this value constitutes `rule` creation!
+        Without it, such class acts as a shared functionality.
+
+    Example:
+        ```python
+        import lintkit
+
+        # Can further inherit from it to create complex rules.
+        class NotRule(lintkit.rule.Node):
+            pass
+
+        # Is a Rule, cause `code` argument is provided
+        class Rule(NotRule, code=0):
+            pass
+        ```
 
     """
 
-    ignore_line: Pattern[str] | None = None
+    file: pathlib.Path | None = None
+    """Path to the loaded file.
+
+    Note:
+        You may want to use this variable directly within `values` method.
+
+    Info:
+        Will be populated by appropriate [`lintkit.loader.Loader`][] subclass,
+        initially `None`. It is of type
+        [`pathlib.Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+    """
+
+    _ignore_line: Pattern[str] | None = None
     """Regex pattern used to ignore a specific line for this rule.
 
     Note:
-        After initialization (after providing `code`) it is always
-        set to some `re.Pattern` based on `settings.ignore_line`
+        When the rule is created (when `code` was provided) it is always
+        set to appropriate
+        [`re.Pattern`](https://docs.python.org/3/library/re.html#re.Pattern)
+        based on [`lintkit.settings.ignore_line`][]
 
     """
 
-    content: str | None = None
-    """Loaded file content (see `loader` module for more information)."""
-
-    file: pathlib.Path | None = None
-    """Path to the loaded file (see `loader` module for more information)."""
-
     _lines: list[str] | None = None
-    """Content split by lines. Used in multiple places, hence cached."""
+    """Content split by lines. Used in multiple places, hence cached.
+
+    Info:
+        Will be populated by [`lintkit.loader`][], initially `None`.
+
+    """
 
     _ignore_spans: list[Span] | None = None
-    """Text spans where the rules should be ignored."""
+    """Text spans where the rules should be ignored.
+
+    Info:
+        Will be populated by [`lintkit.loader`][], initially `None`.
+
+    """
 
     @abc.abstractmethod
     def values(self) -> Iterable[Value[typing.Any]]:
-        """Function returning values (e.g. `ast.Node`) to check against.
+        """Function returning values to check against.
+
+        Tip:
+            Check out any tutorial
+            (e.g. [Basic tutorial](/lintkit/tutorials/basic))
+            for a usage example.
 
         Warning:
             __This is the core function which should always
-            be implemented for each rule__
+            be implemented for each rule.__
 
         Yields:
-            Values to be checked against the rule.
+            Values to be checked against this rule.
 
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def __call__(self) -> Iterable[bool]:
-        """Calls this `rule` on a given entity.
+    def check(self, value: Value[typing.Any]) -> bool:
+        """Perform the check on a certain `value`.
+
+        Tip:
+            Check out any tutorial
+            (e.g. [Basic tutorial](/lintkit/tutorials/basic))
+            for a usage example.
 
         Note:
-            This method is implemented by concrete subclasses
-            (e.g. `Node` or `File`)
+            This method is inherited from [`lintkit.check.Check`][]
 
-        Yields:
-            `True` if a given entity violates the rule, `False` otherwise.
+        Args:
+            value:
+                Value to check.
 
+        Returns:
+            `True` if rule is violated, `False` otherwise.
         """
         raise NotImplementedError
+
+    def description(self) -> str:  # pragma: no cover
+        """Description of the rule.
+
+        Note:
+            You can use this method to provide end users
+            with human readable description of the rule.
+
+        Returns:
+            Description of the rule.
+        """
+        return "No description provided."
 
     def __init_subclass__(
         cls,
         *,
         code: int | None = None,
     ) -> None:
-        """Register the rule under specific code.
+        """Initialize the class (__not instance!__).
+
+        Info:
+            This method is defined so the user can pass `code`
+            as an argument during inheritance.
 
         Warning:
-            `code` has to uniquely identify the `rule`.
+            `code` has to uniquely identify the `rule`!
 
         Example:
-        ```python
-        import lintkit
+            ```python
+            import lintkit
 
 
-        # Pass the code as an argument
-        class MyRule(lintkit.rule.Node, code=42):
-            pass
-        ```
+            # Pass the code as an argument
+            class MyRule(lintkit.rule.Node, code=42):
+                pass
+            ```
 
         Warning:
             When `code` is provided it will define the `rule`.
             Before that you can subclass `Rule` and implement
-            specific methods to later be shared by other rules.
+            specific methods to be shared by other rules.
 
         Example:
-        ```python
-        import lintkit
+            ```python
+            import lintkit
 
-        # code argument not provided, this is
-        # still an interface, not a rule
-        class SharedFunctionality(lintkit.rule.Node):
-            @classmethod
-            def shared_functionality(cls):
-                # Define your shared functionality
+            # code argument not provided, this is
+            # still an interface, not a rule
+            class SharedFunctionality(lintkit.rule.Node):
+                @classmethod
+                def shared_functionality(cls):
+                    # Define your shared functionality
 
-        # actual rule
-        class Rule(SharedFunctionality, code=21):
-            pass
-        ```
+            # actual rule
+            class Rule(SharedFunctionality, code=21):
+                pass
+            ```
 
         Raises:
             lintkit.error.CodeNegativeError:
@@ -162,26 +229,94 @@ class Rule(loader.Loader, check.Check, abc.ABC):
         """Initialize the rule.
 
         Warning:
-            This method is called by the framework, creators __should not__
-            use it directly.
+            `__init__` is called internally by the framework,
+            linter/rule creators __should not__ use it directly.
 
         """
         if self.code is None:
             raise e.CodeMissingError(self)
+
+    # Refactoring this method might break pyright
+    # (e.g. verifying attributes are set will not be picked up
+    # if done in a separate helper method).
+    def ignored(self, value: Value[T]) -> bool:  # noqa: C901
+        """Check if the value should be ignored by this `rule`.
+
+        Info:
+            This function is called internally by `lintkit`
+            framework.
+
+        `Value` is ignored if:
+
+        - file contains whole file ignore/`noqa`
+            (as defined by [`lintkit.settings.ignore_file`][]
+        - its line is in the ignore/`noqa` spans
+            (as defined by [`lintkit.settings.ignore_span_start`][]
+            and [`lintkit.settings.ignore_span_end`][])
+        - its line matches the [`lintkit.settings.ignore_line`][] regex
+            (per-line ignore/`noqa`)
+
+        Args:
+            value:
+                [`lintkit.Value`] to be possibly ignored.
+
+        Returns:
+            `True` if the [`lintkit.Value`] should be ignored
+            for whatever reason.
+
+        """
+        # Branch below should never run (all necessary attributes)
+        # would be instantiated before this call.
+        # - Cannot use `any` due to pyright not understanding this check
+        # - Cannot refactor as `pyright` will not catch it
+        if (
+            self._ignore_line is None
+            or self._ignore_spans is None
+            or self._lines is None
+        ):  # pragma: no cover
+            raise e.LintkitInternalError
+
+        pointer = value._self_start_line  # noqa: SLF001
+        if not pointer:
+            if value._self_comment is None:  # noqa: SLF001
+                return False
+            # Currently used for TOML comments
+            # Some additional tests might be necessary
+            return self._ignore_line.search(value._self_comment) is not None  # noqa: SLF001  # pragma: no cover
+
+        start_line = pointer.value
+        if start_line is not None:
+            for span in self._ignore_spans:
+                if start_line in span:
+                    return True
+            return (
+                self._ignore_line.search(self._lines[start_line - 1])
+                is not None
+            )
+
+        # This might happen when there is no comment, nor line number available
+        # An example would be JSON and `Value` created directly
+        return False  # pragma: no cover
 
     def error(
         self,
         message: str,
         value: Value[T],
     ) -> bool:
-        """Print an error message.
+        """Output an error message.
 
-        This function uses `output` to print (however
-        this operation is defined) eventual rule violations.
-
-        Note:
-            This function is called internally by `lintkit`
+        Info:
+            This method is called internally by `lintkit`
             framework.
+
+        This function uses [`lintkit.settings.output`][] to output
+        (however this operation is defined)
+        rule violations (usually some sort of printing to `stdout`,
+        e.g. standard `print` or [`rich`](https://github.com/Textualize/rich)
+        colored `stdout`).
+
+        Warning:
+            This method likely contains side-effects (printing)!
 
         Args:
             message:
@@ -209,120 +344,27 @@ class Rule(loader.Loader, check.Check, abc.ABC):
         )
         return True
 
-    # Refactoring this method might break pyright
-    # (e.g. verifying attributes are set will not be picked up
-    # if done in a separate helper method).
-    def ignored(self, value: Value[T]) -> bool:  # noqa: C901
-        """Check if the value should be ignored by this `rule`.
+    @abc.abstractmethod
+    def __call__(self) -> Iterable[bool]:
+        """Calls this `rule` on a given entity.
 
-        Note:
-            This function is called internally by `lintkit`
+        Info:
+            This method is implemented by concrete subclasses
+            ([`lintkit.rule.Node`][],
+            [`lintkit.rule.File`][],
+            [`lintkit.rule.All`][])
+
+        Info:
+            This method is called internally by `lintkit`
             framework.
 
-        `Value` is ignored if:
-
-        - its line is in the ignore spans
-        - its line matches the `settings.ignore_line` regex
-        - line comment (e.g. for `TOML` matches the `settings.ignore_line`
-            regex)
-
-        Args:
-            value:
-                Value to check
-
-        Returns:
-            `True` if the value should be ignored.
-        """
-        # Branch below should never run (all necessary attributes)
-        # would be instantiated before this call.
-        # - Cannot use `any` due to pyright not understanding this check
-        # - Cannot refactor as `pyright` will not catch it
-        if (
-            self.ignore_line is None
-            or self._ignore_spans is None
-            or self._lines is None
-        ):  # pragma: no cover
-            raise e.LintkitInternalError
-
-        pointer = value._self_start_line  # noqa: SLF001
-        if not pointer:
-            if value._self_comment is None:  # noqa: SLF001
-                return False
-            # Currently used for TOML comments
-            # Some additional tests might be necessary
-            return self.ignore_line.search(value._self_comment) is not None  # noqa: SLF001  # pragma: no cover
-
-        start_line = pointer.value
-        if start_line is not None:
-            for span in self._ignore_spans:
-                if start_line in span:
-                    return True
-            return (
-                self.ignore_line.search(self._lines[start_line - 1]) is not None
-            )
-
-        # This might happen when there is no comment, nor line number available
-        # An example would be JSON and `Value` created directly
-        return False  # pragma: no cover
-
-    @property
-    def description(self) -> str:  # pragma: no cover
-        """Description of the rule.
-
-        Note:
-            You can use this method to provide end users
-            with human readable description of the rule.
-
-        Returns:
-            Description of the rule.
-        """
-        return "No description provided."
-
-    @classmethod
-    def _run_load(
-        cls,
-        file: pathlib.Path,
-        content: str,
-        lines: list[str],
-        ignore_spans: list[Span],
-    ) -> None:
-        """Load contents of the file.
-
-        Note:
-            File is read once per a set of `rule`s to improve performance.
-            Rest of the arguments are reassigned which should be fast
-            as it is only moving references to the objects.
-            See `loader` module implementation for more information.
-
-        Args:
-            file:
-                File to load
-            content:
-                Content of the file
-            lines:
-                Lines of the file
-            ignore_spans:
-                Spans containing lines to ignore in the file
+        Yields:
+            `True` if a given [`lintkit.Value`][] (or a grouping of them,
+                depending on the type of `rule`) violates the rule,
+                `False` otherwise.
 
         """
-        # It is enough to compare the files as the full path
-        # is unique (while multiple files can have the same content)
-        file_changed = cls.file is None or file != cls.file
-        if file_changed or not cls.should_cache():
-            cls.load(file, content)
-        cls.file = file
-        cls.content = content
-        cls._lines = lines
-        cls._ignore_spans = ignore_spans
-
-    @classmethod
-    def _run_reset(cls) -> None:
-        """Reset data injected into `rule`s."""
-        cls.content = None
-        cls.file = None
-        cls._lines = None
-        cls._ignore_spans = None
-        cls.reset()
+        raise NotImplementedError
 
 
 class Node(Rule, abc.ABC):
@@ -335,34 +377,39 @@ class Node(Rule, abc.ABC):
     """
 
     @abc.abstractmethod
-    def message(self, value: typing.Any) -> str:
+    def message(self, value: Value[typing.Any]) -> str:
         """Message to output when the rule is violated.
 
         Note:
-            You can use `value` to access the `Node` object that violated
-            the rule. `value` can hold different objects depending
-            on the mixins (e.g. `ast.AST` of `Python` or `YAML` node).
+            You can use offending [`lintkit.Value`][] to display
+            more information about the violation. [`lintkit.Value`][]
+            can hold different objects depending
+            on the [`lintkit.Node.values`][] (directly) and
+            on the [`lintkit.loader`][] mixin (indirectly).
 
         Args:
             value:
                 Value which violated the rule.
 
         Returns:
-            Message to output when the rule is violated.
+            String message to output when the rule is violated.
 
         """
         raise NotImplementedError
 
     def __call__(self) -> Iterable[bool]:  # pyright: ignore[reportImplicitOverride]
-        """Calls this the `rule` on a node.
+        """Calls this `rule` on a specific node.
 
         Note:
-            This method is called by the framework, creators __should not__
-            use it directly.
+            This method is called by the framework, linter creators
+            __should not use it directly__.
 
-        Note:
-            This method has side effects (outputting errors according to
-            `settings.output`).
+        Info:
+            This method has side effects (see [`lintkit.rule.Rule.error`][])
+
+        Tip:
+            Check out [Basic tutorial](/lintkit/tutorials/basic)
+            to see an example usage of this `rule`.
 
         Yields:
             `True` if a given node violates the rule, `False` otherwise.
@@ -382,7 +429,9 @@ class Node(Rule, abc.ABC):
 class _NotNode(Rule, abc.ABC):
     """Base class for rules that are not applied on a node.
 
-    Use `File` or `All` as concrete implementations of this class.
+    Warning:
+        Use [`lintkit.rule.File`][] or [`lintkit.rule.All`][] as concrete
+        implementations of this class.
     """
 
     @abc.abstractmethod
@@ -392,11 +441,13 @@ class _NotNode(Rule, abc.ABC):
         Note:
             This message is per-file (which you can access
             by `self.file`) or per all files, hence
-            there is no `value` argument as it is not applicable.
+            there is no [`lintkit.Value`][] argument as it is
+            not applicable.
 
-        Args:
-            value:
-                Value which violated the rule.
+        Tip:
+            You can keep necessary data from any step (e.g.
+            [`lintkit.rule.File.values`][]) within `self`
+            and use them here.
 
         Returns:
             Message to output when the rule is violated.
@@ -405,20 +456,32 @@ class _NotNode(Rule, abc.ABC):
         raise NotImplementedError
 
     def finalize(self, n_fails: int) -> bool:
-        """Finalize the rule check.
+        """Final `check` of the rule.
 
-        After the `rule` is called across all objects
-        (e.g. all files or all nodes in a file),
-        this method allows to make a decision whether
-        to error or not.
+        Tip:
+            You can think of this method as a
+            [`lintkit.rule.Node.check`][] but for
+            [`lintkit.rule.All`][] and [`lintkit.rule.All`][]
+
+        Info:
+            After the rule is called
+            across all objects (all files ([`lintkit.rule.File`][]
+            or all nodes in a file ([`lintkit.rule.All`][]))),
+            this method allows to make a decision whether
+            to error or not.
+
+        Tip:
+            You can keep necessary data from any step (e.g.
+            [`lintkit.rule.All.check`][]) within `self`
+            and use them here.
 
         Args:
             n_fails:
-                Number of failures raised by the `rule`.
+                Number of failures encountered during `__call__`.
 
         Returns:
             `True` if the rule should raise an error, `False` otherwise.
-            Default: raise if `n_fails > 0`.
+            Default: error out if `n_fails > 0`.
 
         """
         return n_fails > 0
@@ -429,26 +492,30 @@ class _NotNode(Rule, abc.ABC):
         Attributes:
             n_fails:
                 Number of failures raised by the `rule`.
-                It is reset after each call to `__call__`.
+                It is set to zero after each call to
+                `[`lintkit.rule.File.finalize`][]`.
 
         """
         super().__init__()
 
         self.n_fails: int = 0
 
-    def __call__(self) -> Iterable[bool]:  # pyright: ignore[reportImplicitOverride]
+    def __call__(self) -> Iterable[typing.Literal[False]]:  # pyright: ignore[reportImplicitOverride]
         """Call this `rule` on all `values`.
 
         Note:
             This method is called by the framework, creators __should not__
             use it directly.
 
-        This method accumulates failures instead of raising each one,
-        which allows you to make a decision based on the aggregated
-        number of failures.
+        Warning:
+            This method accumulates failures from `[lintkit.rule.File.check]`
+            instead of raising each one, which allows you to make a decision
+            based on the aggregated number of failures
+            (see `[`lintkit.rule.File.finalize`][]`).
 
         Returns:
-            bool: whether this linter raised an error or not
+            Always `False` (no matter the `check` output) to make the
+            interface compatible with [`lintkit.rule.Node`][]
 
         """
         for value in self.values():
@@ -463,13 +530,14 @@ class _NotNode(Rule, abc.ABC):
     def _run_finalize(self) -> bool:
         """Finalize the rule check.
 
-        This method is called after all `values` are checked
-        and allows to make a decision whether to raise an error
-        or not based on the number of failures.
+        Info:
+            This method is called after all `values` are checked
+            and allows to make a decision whether to raise an error
+            or not based on the number of failures.
 
         Note:
-            This method is ran after each `File` (if the object is a `File`)
-            or after all `Node`s (if the object is a `Node`).
+            This method is ran after each `File` (if the object is am `All`)
+            or after all `Node`s (if the object is a `File`).
 
         Returns:
             `True` if the rule should raise an error, `False` otherwise.
@@ -484,20 +552,42 @@ class _NotNode(Rule, abc.ABC):
 
 
 class File(_NotNode, abc.ABC):
-    """Rule that is applied on a whole file.
+    """Rule that is applied __on a whole file__.
 
-    Checks run across all elements within file, while
-    the error can be raised after encountering all elements
-    (unlike `Node` which raises an error as soon as it finds
-    a violation).
+    Checks run across __all elements within a certain file__
+    (e.g. all [`ast.AST`](https://docs.python.org/3/library/ast.html#ast.AST)
+    nodes in a `python` file).
+
+    Note:
+        The error can be raised __after encountering all elements__
+        (unlike [`lintkit.rule.Node`][] which raises an error as soon
+        as it finds a violation).
+
+    Tip:
+        See [File tutorial](/lintkit/tutorials/file) for a usage example.
+
+    Tip:
+        [`lintkit.rule.File.finalize`][] is effectively a place where you
+        decide what to do with accumulated errors.
     """
 
 
 class All(_NotNode, abc.ABC):
-    """Rule that is applied on a __all__ files.
+    """Rule that is applied __on a all files__.
 
-    Checks run across all elements of all files, while
-    the error can be raised after encountering all elements
-    (unlike `Node` which raises an error as soon as it finds
-    a violation or `File` which raises an error after each file).
+    Checks run across __all elements across all files__
+    (e.g. all [`ast.AST`](https://docs.python.org/3/library/ast.html#ast.AST)
+    nodes in __all__ `python` file).
+
+    Note:
+        The error can be raised __after encountering all elements__
+        (unlike [`lintkit.rule.Node`][] which raises an error as soon
+        as it finds a violation).
+
+    Tip:
+        See [File tutorial](/lintkit/tutorials/file) for a usage example.
+
+    Tip:
+        [`lintkit.rule.File.finalize`][] is effectively a place where you
+        decide what to do with accumulated errors.
     """

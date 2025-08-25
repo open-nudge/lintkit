@@ -5,17 +5,39 @@ SPDX-FileContributor: szymonmaszke <github@maszke.co>
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# lintkit
+<!-- mkdocs remove start -->
+
+<img align="left" width="256" height="256" src="logo.svg">
+
+<!-- mkdocs remove end -->
+
+<p align="center">
+    <em> lintkit is a framework for building linters/code checking rules </em>
+</p>
+
+- __Multiple formats__: Python-first, but supports YAML, JSON and TOML
+- __Comprehensive__: `noqa` comments,
+    file skips and standardized pretty output
+- __Quick__: Create and run custom rules in a few lines of code
+- __Flexible__: Rules over file(s), their subelements and more
+    (see [Files tutorial](https://open-nudge.github.io/lintkit/tutorials/file))
+- __Minimal__: Gentle learning curve - `<1000` lines of code,
+    [tutorials](https://open-nudge.github.io/lintkit/tutorials),
+    [API reference](https://open-nudge.github.io/lintkit/reference)
 
 <!-- mkdocs remove start -->
 
 <!-- vale off -->
 
-<!-- pyml disable-num-lines 30 line-length-->
-
 <p align="center">
-    <em>Build your own linter in minutes - from Python code to config files (YAML, JSON, TOML)</em>
+🚀 <a href="#quick-start">Quick start</a>
+📚 <a href="https://open-nudge.github.io/lintkit">Documentation</a>
+🤝 <a href="#contribute">Contribute</a>
+👍 <a href="https://github.com/open-nudge/lintkit/blob/main/ADOPTERS.md">Adopters</a>
+📜 <a href="#legal">Legal</a>
 </p>
+
+<!-- pyml disable-num-lines 30 line-length-->
 
 <div align="center">
 
@@ -32,87 +54,87 @@ SPDX-License-Identifier: Apache-2.0
 
 </div>
 
-<p align="center">
-✨ <a href="#features">Features</a>
-🚀 <a href="#quick-start">Quick start</a>
-📚 <a href="https://open-nudge.github.io/lintkit">Documentation</a>
-🤝 <a href="#contribute">Contribute</a>
-👍 <a href="https://github.com/open-nudge/lintkit/blob/main/ADOPTERS.md">Adopters</a>
-📜 <a href="#legal">Legal</a>
-</p>
 <!-- vale on -->
 
 ______________________________________________________________________
 
 <!-- mkdocs remove end -->
 
-## Features
-
-__lintkit__ is a … allowing you to:
-
-- __Feature 1__: Description of the feature
-- __Feature 2__: Description of the feature
-- __Feature 3__: Description of the feature
-- __Feature 4__: Description of the feature
-- __Feature 5__: Description of the feature
-
 ## Quick start
 
-### Installation
+> [!TIP]
+> __Check out more examples ([here](https://open-nudge.github.io/lintkit/tutorials))
+> to get a better feel of `lintkit`__.
+
+Below are __~`20` lines of code__ implementing custom linter with
+__two rules__ and running it on three files:
+
+```python
+import lintkit
+
+# Set the name of the linter
+lintkit.settings.name = "NOUTILS"
+
+class _NoUtils(lintkit.check.Regex, lintkit.loader.Python, lintkit.rule.Node):
+    def regex(self):
+        # Regex to match util(s) variations in function/class name
+        return r"_?[Uu]til(s|ities)?"
+
+    def values(self):
+        # Yield class or function names from a Python file
+        data = self.getitem("nodes_map")
+        for node in data[self.ast_class()]:
+            yield lintkit.Value.from_python(node.name, node)
+
+    def message(self, _):
+        return f"{self.ast_class()} name contains util(s) word"
+
+# Concrete rules and their codes
+# Disabling linter using noqas supported out of the box!
+class ClassNoUtils(_NoUtils, code=0):  # noqa: NOUTILS0
+    # ast type we want to focus on in this rule
+    def ast_class(self):
+        return ast.ClassDef
+
+class FunctionNoUtils(_NoUtils, code=1):  # noqa: NOUTILS0
+    def ast_class(self):
+        return ast.FunctionDef
+
+lintkit.run("linter.py", "file1.py", "file2.py")
+
+# Example output
+#/path/file1.py:23:17 NOUTILS0: ClassDef name contains util(s) word
+#/path/file2.py:73:21 NOUTILS1: FunctionDef name contains util(s) word
+```
+
+## Installation
+
+> [!TIP]
+> You can use your favorite package manager like
+> [`uv`](https://github.com/astral-sh/uv),
+> [`hatch`](https://github.com/pypa/hatch)
+> or [`pdm`](https://github.com/pdm-project/pdm)
+> instead of `pip`.
 
 ```sh
 > pip install lintkit
 ```
 
-### Usage
+> [!NOTE]
+> `lintkit` provides extras (`rich`, `toml`, `yaml`
+> and `all` containing everything) to provide additional functionality.
 
-```python
-import lintkit
-
-...
+```sh
+# To create rules utilizing YAML
+> pip install lintkit[rich, yaml]
 ```
 
-### Examples
+## Learn
 
-<details>
-  <summary><b><big>Short</big></b> (click me)</summary>
-&nbsp;
+Check out the following links to learn more about `lintkit`:
 
-Description of the example
-
-```python
-# Short example
-```
-
-</details>
-
-<details>
-  <summary><b><big>Common</big></b> (click me)</summary>
-&nbsp;
-
-Description of the example
-
-```python
-# Common use case
-```
-
-</details>
-
-<details>
-  <summary><b><big>Advanced</big></b> (click me)</summary>
-&nbsp;
-
-Description of the example
-
-```python
-# Something advanced and cool
-```
-
-</details>
-
-<!-- md-dead-link-check: off -->
-
-<!-- mkdocs remove start -->
+- [Tutorials](https://open-nudge.github.io/lintkit/tutorials)
+- [API Reference](https://open-nudge.github.io/lintkit/reference)
 
 ## Contribute
 

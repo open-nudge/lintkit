@@ -8,7 +8,7 @@ SPDX-License-Identifier: Apache-2.0
 # Advanced linter
 
 In this tutorial you will learn how to work
-with \[`lintkit`\][]'s
+with [`lintkit`][]'s
 [ast (abstract syntax tree)](https://docs.python.org/3/library/ast.html)
 in Python.
 
@@ -22,7 +22,7 @@ Afterwards you will be able to:
 - create linters targeting subparts of the Python files
     (e.g. `class`, `def` or conditionals)
 - how to share the `ast` across multiple rules
-- how to use the provided \[`lintkit.check`\][] module
+- how to use the provided [`lintkit.check`][] module
     to your advantage
 
 > [!NOTE]
@@ -76,7 +76,7 @@ class _NoHelpers(_NoWord):
 ```
 
 This constitutes the __what__ while utilizing
-\[`lintkit.check.Regex`\][] which, given a `str` applies
+[`lintkit.check.Regex`][] which, given a `str` applies
 regex search
 ([`re.search`](https://docs.python.org/3/library/re.html#re.search))
 to be precise)
@@ -99,7 +99,7 @@ We will be using the following `ast` types:
 
 Fortunately, loading and processing of `Python` syntax is already performed
 by the [`ast`](https://docs.python.org/3/library/ast.html) and
-\[`lintkit.loader.Python`\][], see below:
+[`lintkit.loader.Python`][], see below:
 
 ```python
 import abc
@@ -110,10 +110,12 @@ from collections.abc import Iterable
 class _Definition(lintkit.rule.Node, lintkit.loader.Python, abc.ABC):
     @abc.abstractmethod
     def ast_class(self) -> type[ast.ClassDef | ast.FunctionDef]:
-        raise NotImplemntedError
+        # Type of class we are after in concrete definitions.
+        # See _ClassDefinition and _FunctionDefinition below
+        raise NotImplementedError
 
     def values(self) -> Iterable[lintkit.Value[str]]:
-
+        # Yield node (class or function) names from a Python file
         data: dict[type[ast.AST], ast.AST] = self.getitem("nodes_map")
         for node in data[self.ast_class()]:
             yield lintkit.Value.from_python(node.name, node)
@@ -124,16 +126,21 @@ class _ClassDefinition(_Definition):
         return ast.ClassDef
 
 class _FunctionDefinition(_Definition):
-    def ast_class(self) -> type[ast.ClassDef]:
+    def ast_class(self) -> type[ast.FunctionDef]:
         return ast.FunctionDef
 ```
 
 Please note the following:
 
-- \[`lintkit.loader.Python`\][] defines a few useful attributes
+- [`lintkit.loader.Python`][] defines a few useful attributes
     (variations of `ast`) which allows linter creators creating
     Python rules easier. `nodes_map` is a `dict` mapping `ast` types
-- \[`lintkit.Value.from_python`\][] allows us to keep any value
+    to its instances (e.g. class definition to class definition instances).
+- __[`self.getitem`][lintkit.loader.Loader.getitem] is a method you should
+    use to get the data from any [`lintkit.loader.Loader`][] subclass__.
+    This method works just like Python's `__getitem__`, but utilizes
+    caching across multiple rules (files are loaded and parsed only once).
+- [`lintkit.Value.from_python`][] allows us to keep any value
     while keeping the necessary metadata about the node.
 - __We are `yield`ing multiple `Value`s__. These are all
     [`ast.ClassDef`s](https://docs.python.org/3/library/ast.html#ast.ClassDef)
@@ -141,7 +148,7 @@ Please note the following:
     [`ast.FunctionDef`s](https://docs.python.org/3/library/ast.html#ast.FunctionDef)
 
 > [!NOTE]
-> \[`lintkit.loader.Python`\][] __is not optimal memory or compute-wise__.
+> [`lintkit.loader.Python`][] __is not optimal memory or compute-wise__.
 > If you find it a bottleneck, you might consider creating a custom
 > `loader`
 
@@ -178,8 +185,8 @@ class FunctionNoUtils(_NoUtils, _FunctionDefinitions, code=4):
 
 > [!IMPORTANT]
 > __Order of inheritance matters__. It should go as follows:
-> \[`lintkit.check.Check`\][], \[`lintkit.loader.Loader`\][] and
-> \[`lintkit.rule.Rule`\][] (or their respective subclasses)
+> [`lintkit.check.Check`][], [`lintkit.loader.Loader`][] and
+> [`lintkit.rule.Rule`][] (or their respective subclasses)
 
 > [!TIP]
 > You could further refactor the above rules to reuse `message` method.

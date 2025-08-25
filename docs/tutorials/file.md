@@ -10,7 +10,7 @@ SPDX-License-Identifier: Apache-2.0
 Up until now our rules worked on `Node`s - subelements
 (like Python's class definition or a variable in `TOML` file) of the file.
 
-\[`lintkit`\][] allows you to also define rules working on __filenames__, which
+[`lintkit`][] allows you to also define rules working on __filenames__, which
 might come handy in some situations.
 
 In this tutorial, we will:
@@ -30,7 +30,7 @@ In this tutorial, we will:
 
 In order to work with
 [`pathlib.Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
-objects representing files we can use \[`lintkit.loader.File`\][]
+objects representing files we can use [`lintkit.loader.File`][]
 
 ```python
 import lintkit
@@ -61,15 +61,15 @@ Adding this rule to the ones in [advanced tutorial](advanced.md) will
 effectively check there are no `util` or `helper` files in the project.
 
 > [!TIP]
-> If you don't override \[`lintkit.loader.File.skip`\][] method
-> \[`lintkit.loader.File`\][] will target every file.
+> If you don't override [`lintkit.loader.File.skip`][] method
+> [`lintkit.loader.File`][] will target every file.
 
 ## Whole file rule
 
 > [!CAUTION]
 > This and following subsections are independent from any previous tutorials.
 
-\[`lintkit.rule.File`\][] allows you to define a rule which __acts
+[`lintkit.rule.File`][] allows you to define a rule which __acts
 on all elements__ (however defined) __within a given file__.
 
 An example should make it clearer:
@@ -108,16 +108,16 @@ class TooManyConditionals(lintkit.loader.Python, lintkit.rule.File, code=0):
 ```
 
 > [!IMPORTANT]
-> Unlike \[`lintkit.rule.Node`\][] __this `rule` does not fail when
+> Unlike [`lintkit.rule.Node`][] __this `rule` does not fail when
 > `check` returns `True`__. Instead, __it counts all fails__
-> and uses \[`lintkit.rule.File.finalize`\][] to decide what
+> and uses [`lintkit.rule.File.finalize`][] to decide what
 > constitutes a failure (in our case, if `check` returns `True`
 > more than `2` times).
 
 > [!TIP]
 > You could have noticed, that `message` method has no arguments.
 > As we are acting on multiple elements there is no straightforward meaning
-> behind such argument, hence it is not within \[`lintkit.rule.File`\][]
+> behind such argument, hence it is not within [`lintkit.rule.File`][]
 > interface. __Remember you can always save any necessary variables
 > within `self` if you need it though!__
 
@@ -151,8 +151,8 @@ Now, if we run our rule, we will see the following error message:
 
 ## All files rule
 
-You can think of \[`lintkit.rule.All`\][] as a further generalization
-of \[`lintkit.rule.File`\][] - you can gather info from all files
+You can think of [`lintkit.rule.All`][] as a further generalization
+of [`lintkit.rule.File`][] - you can gather info from all files
 of interest (in our code `*.py`) and perform decisions based on that.
 
 The following `rule` would verify whether __all `class` names in all files__

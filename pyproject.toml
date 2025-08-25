@@ -485,6 +485,8 @@ ignore_undeclared = [
 ]
 
 ignore_unused = [
+  "rich",
+  "wrapt",
   "basedpyright",
   "cairosvg",
   "cffconvert",

@@ -85,6 +85,44 @@ class LintkitInternalError(LintkitError):
 
 
 @typing.final
+class NotSubclassError(LintkitError):
+    """Raised when the registered `rule` is not an appropriate subclass.
+
+    Info:
+        Created rule (via `code=<NUMBER>`) __has to inherit
+        from [`lintkit.rule.Rule`][] __AND__ [`lintkit.loader.Loader`].
+
+    Warning:
+        Python's typing does not support intersection types,
+        hence this is checked dynamically.
+
+    Tip:
+        This error is raised automatically by `lintkit`,
+        no need for explicit raising.
+
+    The following would be an offending call:
+
+    ```python
+    import lintkit
+
+
+    # Does not inherit from `loader.Loader`
+    class MyRule(lintkit.rule.Node, code=-1):
+        pass
+    ```
+
+    """
+
+    def __init__(self) -> None:
+        """Initialize the error."""
+        self.message = (
+            "Rule has to inherit from both 'lintkit.rule.Rule' "
+            "and 'lintkit.loader.Loader' classes (or subclasses)."
+        )
+        super().__init__(self.message)
+
+
+@typing.final
 class IgnoreRangeError(LintkitError):
     """Raised when the end of the ignore range is missing.
 
@@ -198,7 +236,7 @@ class CodeNegativeError(LintkitError):
     import lintkit
 
 
-    class MyRule(lintkit.rule.Node, code=-1):
+    class MyRule(lintkit.rule.Node, lintkit.loader.Loader, code=-1):
         pass
     ```
 
@@ -240,11 +278,11 @@ class CodeExistsError(LintkitError):
     import lintkit
 
 
-    class FirstRule(lintkit.rule.Node, code=12):
+    class FirstRule(lintkit.rule.Node, lintkit.loader.Loader, code=12):
         pass
 
 
-    class SecondRule(lintkit.rule.Node, code=12):
+    class SecondRule(lintkit.rule.Node, lintkit.loader.Loader, code=12):
         pass
     ```
 

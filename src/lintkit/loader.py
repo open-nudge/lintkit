@@ -3,7 +3,37 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""Module defining loaders for various file types."""
+"""Core module providing loaders for different data types.
+
+When creating a new rule, you should inherit from a specific
+[`lintkit.loader.Loader`][] subclass, namely:
+
+- [`lintkit.loader.Python`][] - rules working with Python's syntax and
+    objects, contains variations of parsed
+    [`ast.AST`](https://docs.python.org/3/library/ast.html#ast.AST)
+    (e.g. dictionary mapping `ast.AST` types to their instances within
+    the code under `cls.nodes_map` attribute.
+- [`lintkit.loader.JSON`][] - rules working with `JSON` data, which
+    is parsed using builtin
+    [JSON library](https://docs.python.org/3/library/json.html)
+    with the `data` saved under `data` attribute.
+- [`lintkit.loader.TOML`][] - rules working with `TOML` data, which
+    is parsed using third-party library
+    [`tomlkit`](https://tomlkit.readthedocs.io/en/latest/)
+    with the `data` saved under `data` attribute.
+- [`lintkit.loader.YAML`][] - rules working with `YAML` data, which
+    is parsed using third-party library
+    [`ruamel.yaml`](https://pypi.org/project/ruamel.yaml/)
+    with the `data` saved under `data` attribute.
+- [`lintkit.loader.File`][] - if you only need to work with the raw
+    `content` of the file or its filename (described as
+    [`pathlib.Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+Tip:
+    Check out [tutorials](/lintkit/tutorials) for an example
+    usage of loaders.
+
+"""
 
 from __future__ import annotations
 
@@ -22,6 +52,8 @@ if typing.TYPE_CHECKING:
 
     from collections.abc import Callable
 
+    from ._ignore import Span
+
 _last_loader_index: int = -1
 """Last index of the loader, used to create unique indices for each."""
 
@@ -29,10 +61,18 @@ _last_loader_index: int = -1
 def _create_loader_index() -> int:
     """Create a unique index for each loader.
 
-    This function allows loaders to keep data uniquely.
+    Note:
+        This function allows loaders to keep data unique for each
+        loader, while enabling `caching` (loading file data only
+        when absolutely necessary).
+
+    Warning:
+        Loaders are `0` indexed ([`lintkit.loader.Loader][] has `0`
+        as the base class).
 
     Returns:
         A unique index for the loader, incremented by one.
+
     """
     global _last_loader_index  # noqa: PLW0603
     _last_loader_index += 1
@@ -42,18 +82,69 @@ def _create_loader_index() -> int:
 class Loader(abc.ABC):
     """Base class for all loaders."""
 
+    content: str | None = None
+    """Loaded file (its raw `string` content).
+
+    Note:
+        You may want to use this variable directly within `values` method.
+
+    Info:
+        Will be populated by appropriate [`lintkit.loader.Loader`][] subclass,
+        initially `None`.
+
+    """
+
+    file: pathlib.Path | None = None
+    """Path to the loaded file.
+
+    Note:
+        You may want to use this variable directly within `values` method.
+
+    Info:
+        Will be populated by appropriate [`lintkit.loader.Loader`][] subclass,
+        initially `None`. It is of type
+        [`pathlib.Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+    """
+
     _loader_data: typing.ClassVar[
         collections.defaultdict[int, collections.defaultdict[str, typing.Any]]
     ] = collections.defaultdict(lambda: collections.defaultdict(lambda: None))
-    """Where all the data is stored internally."""
+    """Where all the data is stored internally.
+
+    Important:
+        This mapping is `cls._loader_index` to enable per-class data keeping.
+
+    """
 
     _loader_index: int = _create_loader_index()
-    """Unique index for each Loader class."""
+    """Unique index for each [`lintkit.loader.Loader`][] class.
+
+    Important:
+        Used to index into `_loader_data`.
+
+    """
+
+    _lines: list[str] | None = None
+    """Content split by lines. Used in multiple places, hence cached.
+
+    Info:
+        Will be populated by [`lintkit.loader`][], initially `None`.
+
+    """
+
+    _ignore_spans: list[Span] | None = None
+    """Text spans where the rules should be ignored.
+
+    Info:
+        Will be populated by [`lintkit.loader`][], initially `None`.
+
+    """
 
     @classmethod
     @abc.abstractmethod
     def skip(cls, file: pathlib.Path, content: str) -> bool:
-        """Skip loading based on the file path or content.
+        """Skip data loading based on the file path or content.
 
         Args:
             file:
@@ -70,12 +161,11 @@ class Loader(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def should_cache(cls) -> bool:
-        """Check if the data is already loaded and cached.
+        """Check if the data is already cached.
 
         Note:
-            Unlike `skip` this method is dependent on class
-            attributes (e.g. loaded `data`) not external
-            factors.
+            Unlike [`lintkit.loader.Loader.skip`][] this method is dependent
+            on class attributes (e.g. `data` attribute), not external factors.
 
         Returns:
             `True` if the data is already loaded and cached,
@@ -87,11 +177,15 @@ class Loader(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def load(cls, file: pathlib.Path, content: str) -> None:
-        """Load the content of the file into some attribute.
+        """Load the content of the file into attribute(s).
 
         Tip:
-            You should only use `content` if possible to load
-            the data, as it is already loaded into memory.
+            You should only use `content`, if possible, to load
+            the data (avoids multiple disk reads).
+
+        Tip:
+            You should use [`lintkit.loader.Loader.setitem`][]
+            to save the loaded data in the loader.
 
         Args:
             file:
@@ -106,10 +200,15 @@ class Loader(abc.ABC):
     def getitem(cls, key: str) -> typing.Any:
         """Get an item from the loader's data.
 
+        Tip:
+            You should use this method to obtain
+            data shared across every rule inheriting from
+            this `Loader`.
+
         Warning:
             If the item is not found an error is raised.
 
-        Note:
+        Info:
             This is a convenience method to hide internal
             caching mechanism and allow natural access
             to the underlying data.
@@ -123,6 +222,11 @@ class Loader(abc.ABC):
     @classmethod
     def setitem(cls, key: str, value: typing.Any) -> None:
         """Set an item in the loader's data.
+
+        Tip:
+            You should use this method to set
+            state shared across every rule inheriting from
+            this `Loader`.
 
         Note:
             This is a convenience method to hide internal
@@ -139,72 +243,62 @@ class Loader(abc.ABC):
 
     @classmethod
     def reset(cls) -> None:
-        """Reset the loader's data."""
+        """Reset the loader's data.
+
+        Info:
+            This method is used internally and it is unlikely
+            to be called directly.
+
+        """
         Loader._loader_data = collections.defaultdict(
             lambda: collections.defaultdict(lambda: None)
         )
 
-
-class File(Loader):
-    """Load whole `file`.
-
-    If this `loader` is used, you will likely work directly
-    on a `pathlib.Path` object, hence this `load` is essentially a no-op.
-
-    Note:
-        As `rule` already has the `file` attribute, this loader
-        is mostly used to express intent.
-
-    """
-
-    _loader_index: int = _create_loader_index()
-
     @classmethod
-    def skip(cls, _: pathlib.Path, __: str) -> bool:  # pyright: ignore [reportImplicitOverride, reportIncompatibleMethodOverride]
-        """Never skip loading.
+    def _run_load(
+        cls,
+        file: pathlib.Path,
+        content: str,
+        lines: list[str],
+        ignore_spans: list[Span],
+    ) -> None:
+        """Load contents of the file.
 
-        Important:
-            If you wish to target a file with specific extension
-            you can update this method, see below.
-
-        Example:
-            ```python
-            import lintkit
-
-
-            class PythonFile(lintkit.loader.File):
-                def skip(cls, filename: pathlib.Path, _: str) -> bool:
-                    return filename.suffix != ".py"
-            ```
+        Note:
+            File is read once per a set of `rule`s to improve performance.
+            Rest of the arguments are reassigned which should be fast
+            as it is only moving references to the objects.
+            See `loader` module implementation for more information.
 
         Args:
-            _:
-                The path to the file being checked (not used by default).
-            __:
-                The content of the file (not used by default).
-
-        Returns:
-            `False` always, as this loader should never be skipped.
-
-        """
-        return False
-
-    @classmethod
-    def should_cache(cls) -> bool:  # pyright: ignore [reportImplicitOverride]
-        """Never cache this loader."""
-        return False
-
-    @classmethod
-    def load(cls, _: pathlib.Path, __: str) -> None:  # pyright: ignore [reportImplicitOverride, reportIncompatibleMethodOverride]
-        """Do not load anything.
-
-        Args:
-            _:
-                The path to the file being loaded (not used).
-            __:
-                The content of the file (not used).
+            file:
+                File to load
+            content:
+                Content of the file
+            lines:
+                Lines of the file
+            ignore_spans:
+                Spans containing lines to ignore in the file
 
         """
+        # It is enough to compare the files as the full path
+        # is unique (while multiple files can have the same content)
+        file_changed = cls.file is None or file != cls.file
+        if file_changed or not cls.should_cache():
+            cls.load(file, content)
+        cls.file = file
+        cls.content = content
+        cls._lines = lines
+        cls._ignore_spans = ignore_spans
+
+    @classmethod
+    def _run_reset(cls) -> None:
+        """Reset data injected into `rule`s."""
+        cls.content = None
+        cls.file = None
+        cls._lines = None
+        cls._ignore_spans = None
+        cls.reset()
 
 
 class Python(Loader):
@@ -289,11 +383,12 @@ class Python(Loader):
         cls.setitem("nodes_map", nodes_map)
 
 
-class ConfigLoader(Loader, abc.ABC):
-    """Load mixin for non-Python files.
+class _ConfigLoader(Loader, abc.ABC):
+    """[`lintkit.loader.Loader`][] mixin for non-Python files.
 
-    This mixin provides a common interface for loaders that
-    handle non-Python files, such as JSON, TOML, and YAML.
+    Info:
+        This mixin provides a common interface for loaders that
+        handle non-Python files, such as JSON, TOML, and YAML.
 
     """
 
@@ -338,6 +433,16 @@ class ConfigLoader(Loader, abc.ABC):
 
         Note:
             The loaded data is saved under the `data` key.
+            Use [`lintkit.loader.Loader.getitem`][] to use it.
+
+        Example:
+            ```python
+            # Could be TOML, YAML or other config-like loader
+            class MyRule(lintkit.loader.JSON):
+                def values(self):
+                    data = self.getitem("data")
+                    # Rest of the code
+            ```
 
         Args:
             file:
@@ -350,10 +455,10 @@ class ConfigLoader(Loader, abc.ABC):
 
     @classmethod
     def should_cache(cls) -> bool:  # pyright: ignore [reportImplicitOverride]
-        """Check if the `data` key is present.
+        """Cache if the `data` key is already present.
 
         Returns:
-            `True` if the `cache` is already there and load
+            `True` if the `data` field is already there and load
             should not be re-executed, `False` otherwise.
 
         """
@@ -382,8 +487,16 @@ class ConfigLoader(Loader, abc.ABC):
         return file.suffix not in cls._extensions()
 
 
-class JSON(ConfigLoader):
-    """Loader for `JSON` files."""
+class JSON(_ConfigLoader):
+    """Loader for `JSON` files.
+
+    Info:
+        Loads files with `.json` extensions. Data is provided as
+        Python plain objects as loaded by
+        [standard json library](https://docs.python.org/3/library/json.html)
+        under `data` key.
+
+    """
 
     _loader_index: int = _create_loader_index()
 
@@ -407,7 +520,7 @@ class JSON(ConfigLoader):
             _:
                 The path to the file being loaded (not used).
             content:
-                The content of the `TOML` file as a string.
+                The content of the `JSON` file as a string.
 
         Returns:
             The parsed data from the `JSON` file.
@@ -419,8 +532,20 @@ class JSON(ConfigLoader):
 if available.TOML:
     from tomlkit import parse
 
-    class TOML(ConfigLoader):
-        """Loader for `TOML` files."""
+    class TOML(_ConfigLoader):
+        """Loader for `TOML` files.
+
+        Warning:
+            You need [`tomlkit`](https://tomlkit.readthedocs.io/en/latest/)
+            library is necessary to use this loader. You can install
+            it on your own, or use `lintkit[toml]` extra (advised).
+
+        Info:
+            Loads files with `.toml` extensions. Data is provided as
+            [`tomlkit.Items`](https://tomlkit.readthedocs.io/en/latest/api/#module-tomlkit.items)
+            under `data` key.
+
+        """
 
         _loader_index: int = _create_loader_index()
 
@@ -504,13 +629,20 @@ if available.YAML:
                 _decorator(function),
             )
 
-    class YAML(ConfigLoader):
+    class YAML(_ConfigLoader):
         """Loader for `YAML` files.
 
         Warning:
-            This loader uses `ruamel.yaml` to parse YAML files.
-            Each object is already wrapped with `Value`,
-            hence you can use it directly.
+            You need [`ruamel.yaml`](https://pypi.org/project/ruamel.yaml/)
+            library to use this loader. You can install it on your own,
+            or use `lintkit[yaml]` extra (advised).
+
+        Info:
+            Loads files with `.yaml` or `.yml` extensions. Data is
+            __already provided as [`lintkit.Value`][]__
+            under `data` key.
+            __This is the only [`lintkit.loader.Loader`][] which
+            does not need `lintkit.Value.from` method!__
 
         """
 
@@ -547,3 +679,66 @@ if available.YAML:
 
 else:  # pragma: no cover
     pass
+
+
+class File(Loader):
+    """Load whole `file`.
+
+    Info:
+        If this `loader` is used, you will likely work directly
+        on a `pathlib.Path` object, hence this `load` is essentially a `no-op`.
+
+    Tip:
+        As [`lintkit.rule.Rule`][] already has the `file` attribute,
+        this loader is mostly used to express intent.
+
+    """
+
+    _loader_index: int = _create_loader_index()
+
+    @classmethod
+    def skip(cls, _: pathlib.Path, __: str) -> bool:  # pyright: ignore [reportImplicitOverride, reportIncompatibleMethodOverride]
+        """Never skip loading.
+
+        Important:
+            If you wish to target a file with specific extension
+            you can update this method, see below.
+
+        Example:
+            ```python
+            import lintkit
+
+
+            class PythonFile(lintkit.loader.File):
+                def skip(cls, filename: pathlib.Path, _: str) -> bool:
+                    return filename.suffix != ".py"
+            ```
+
+        Args:
+            _:
+                The path to the file being checked (not used by default).
+            __:
+                The content of the file (not used by default).
+
+        Returns:
+            `False` always, as this loader should never be skipped.
+
+        """
+        return False
+
+    @classmethod
+    def should_cache(cls) -> bool:  # pyright: ignore [reportImplicitOverride]
+        """Never cache this loader."""
+        return False
+
+    @classmethod
+    def load(cls, _: pathlib.Path, __: str) -> None:  # pyright: ignore [reportImplicitOverride, reportIncompatibleMethodOverride]
+        """Do not load anything (`no-op`).
+
+        Args:
+            _:
+                The path to the file being loaded (not used).
+            __:
+                The content of the file (not used).
+
+        """

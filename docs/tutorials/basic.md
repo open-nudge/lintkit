@@ -65,32 +65,32 @@ class NameDefined(lintkit.loader.TOML, lintkit.rule.Node, code=1):
 
 Please note the following elements:
 
-- \[`lintkit.settings.name`\][] attribute specifies the name our
+- [`lintkit.settings.name`][] attribute specifies the name our
     linter will have (used when outputting errors or defining
     in-code ignores).
-- \[`lintkit.loader.TOML`\][] will load `toml` file __and__
+- [`lintkit.loader.TOML`][] will load `toml` file __and__
     save it as a state under `data`
 - Access to `loader` created attributes should __always__ be performed by
-    \[`lintkit.loader.Loader.getitem`\][]
-- \[`lintkit.rule.Node`\][] specifies we are interested in `node`/content
+    [`lintkit.loader.Loader.getitem`][]
+- [`lintkit.rule.Node`][] specifies we are interested in `node`/content
     of the data (as opposed to the raw contents of the file or
     all `TOML` files). Check out [File linters](file.md) for more information.
 - `code=1` specifies __numeric value associated with this rule__.
     It will later be displayed as a concatenation of
-    \[`lintkit.settings.name`\][] and `code`, in our case
+    [`lintkit.settings.name`][] and `code`, in our case
     `"MYLINTER1"`. Many linters have their own codes (or group of codes),
     for example [`ruff`](https://docs.astral.sh/ruff/rules/).
 - One has to define
-    \[`values`\][lintkit.rule.Rule.values] (yielding values to check),
-    \[`message`\][lintkit.rule.Node.message] (message to display in case
-    of rule violation), and \[`check`\][lintkit.check.Check.check]
+    [`values`][lintkit.rule.Rule.values] (yielding values to check),
+    [`message`][lintkit.rule.Node.message] (message to display in case
+    of rule violation), and [`check`][lintkit.check.Check.check]
     (what does it mean to check the `value`, actual rule)
-- \[`lintkit.Value`\][] is a transparent proxy object as
+- [`lintkit.Value`][] is a transparent proxy object as
     defined by [`wrapt`](https://wrapt.readthedocs.io/en/master/)
     (`lintkit.Value[str]` should be treated as plain `str`).
     __This transparent proxy carries important information
     (like comment associated with the line) which is used by
-    \[`lintkit`\][] pipelines__
+    [`lintkit`][] pipelines__
 
 > [!NOTE]
 > Why `values` method yields? Linter creators can return
@@ -145,7 +145,7 @@ but that would have its own downsides:
 > As a rule of thumb, try to make your linters follow
 > "one check, one rule" formula.
 
-Instead, \[`lintkit`\][] provides a way to reuse `rule` elements via inheritance
+Instead, [`lintkit`][] provides a way to reuse `rule` elements via inheritance
 (change original contents of the file to these):
 
 ```python
@@ -257,7 +257,7 @@ if __name__ == "__main__":
 
 > [!TIP]
 > You can use `sys.exit` directly with the return code
-> of \[`lintkit.run`\][] as it will return `True` __if any
+> of [`lintkit.run`][] as it will return `True` __if any
 > rule fails__.
 
 Run it:
@@ -275,7 +275,7 @@ And you should see the following output (exact file path might differ):
 
 > [!NOTE]
 > Currently `TOML` does not support line and column numbers (that's why `-`)
-> unlike `YAML` and `Python`. Check out \[`lintkit.loader`\][] if you want
+> unlike `YAML` and `Python`. Check out [`lintkit.loader`][] if you want
 > to find out more.
 
 ## Next steps

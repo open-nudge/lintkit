@@ -50,7 +50,7 @@ Read on to see how to inject `max_name_length` attribute without passing
 values to `__init__`
 
 > [!TIP]
-> \[`lintkit.rule.Rule`\][] is instantiated by \[`lintkit.run`\][] call
+> [`lintkit.rule.Rule`][] is instantiated by [`lintkit.run`][] call
 > and no arguments are passed.
 
 ## Update config
@@ -121,9 +121,9 @@ if __name__ == "__main__":
 
 Things you should note:
 
-- \[`lintkit.registry.inject`\][] allows you to register variables
+- [`lintkit.registry.inject`][] allows you to register variables
     (or whole configs) so they are available to __all rules__
-- \[`lintkit.run`\][] gives you more flexibility (e.g.
+- [`lintkit.run`][] gives you more flexibility (e.g.
     including or excluding code parts).
 
 > [!NOTE]
