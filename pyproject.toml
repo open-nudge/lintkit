@@ -482,11 +482,13 @@ ignore_undeclared = [
   "pytest",
   "hypothesis",
   "lintkit",
+  "ruamel", # False positive
 ]
 
 ignore_unused = [
-  "rich",
-  "wrapt",
+  "ruamel.yaml", # False positive
+  "rich", # False positive (conditional)
+  "wrapt", # False positive (conditional)
   "basedpyright",
   "cairosvg",
   "cffconvert",

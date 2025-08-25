@@ -25,17 +25,11 @@ SPDX-License-Identifier: Apache-2.0
     [tutorials](https://open-nudge.github.io/lintkit/tutorials),
     [API reference](https://open-nudge.github.io/lintkit/reference)
 
+______________________________________________________________________
+
 <!-- mkdocs remove start -->
 
 <!-- vale off -->
-
-<p align="center">
-🚀 <a href="#quick-start">Quick start</a>
-📚 <a href="https://open-nudge.github.io/lintkit">Documentation</a>
-🤝 <a href="#contribute">Contribute</a>
-👍 <a href="https://github.com/open-nudge/lintkit/blob/main/ADOPTERS.md">Adopters</a>
-📜 <a href="#legal">Legal</a>
-</p>
 
 <!-- pyml disable-num-lines 30 line-length-->
 
@@ -54,9 +48,15 @@ SPDX-License-Identifier: Apache-2.0
 
 </div>
 
-<!-- vale on -->
+<p align="center">
+🚀 <a href="#quick-start">Quick start</a>
+📚 <a href="https://open-nudge.github.io/lintkit">Documentation</a>
+🤝 <a href="#contribute">Contribute</a>
+👍 <a href="https://github.com/open-nudge/lintkit/blob/main/ADOPTERS.md">Adopters</a>
+📜 <a href="#legal">Legal</a>
+</p>
 
-______________________________________________________________________
+<!-- vale on -->
 
 <!-- mkdocs remove end -->
 
