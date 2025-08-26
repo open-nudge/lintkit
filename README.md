@@ -20,10 +20,10 @@ SPDX-License-Identifier: Apache-2.0
     file skips and standardized pretty output
 - __Quick__: Create and run custom rules in a few lines of code
 - __Flexible__: Rules over file(s), their subelements and more
-    (see [Files tutorial](https://open-nudge.github.io/lintkit/tutorials/file))
+    (see [Files tutorial](https://open-nudge.github.io/lintkit/latest/tutorials/file))
 - __Minimal__: Gentle learning curve - `<1000` lines of code,
-    [tutorials](https://open-nudge.github.io/lintkit/tutorials),
-    [API reference](https://open-nudge.github.io/lintkit/reference)
+    [tutorials](https://open-nudge.github.io/lintkit/latest/tutorials),
+    [API reference](https://open-nudge.github.io/lintkit/latest/reference/lintkit)
 
 ______________________________________________________________________
 
@@ -63,7 +63,7 @@ ______________________________________________________________________
 ## Quick start
 
 > [!TIP]
-> __Check out more examples ([here](https://open-nudge.github.io/lintkit/tutorials))
+> __Check out more examples ([here](https://open-nudge.github.io/lintkit/latest/tutorials))
 > to get a better feel of `lintkit`__.
 
 Below are __~`20` lines of code__ implementing custom linter with
@@ -133,8 +133,8 @@ lintkit.run("linter.py", "file1.py", "file2.py")
 
 Check out the following links to learn more about `lintkit`:
 
-- [Tutorials](https://open-nudge.github.io/lintkit/tutorials)
-- [API Reference](https://open-nudge.github.io/lintkit/reference)
+- [Tutorials](https://open-nudge.github.io/lintkit/latest/tutorials)
+- [API Reference](https://open-nudge.github.io/lintkit/latest/reference/lintkit)
 
 ## Contribute
 
