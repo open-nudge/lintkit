@@ -639,10 +639,7 @@ plugins.md042.enabled = false
 
 [tool.md_dead_link_check]
 exclude_links = [
-  "https://github.com/open-nudge/lintkit*",
-  "https://open-nudge.github.io/lintkit*",
   "/LICENSE.md",
-  "https://open-nudge.github.io*",
   "templateskip",
 ]
 
