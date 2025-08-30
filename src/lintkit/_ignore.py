@@ -21,6 +21,8 @@ import re
 import typing
 
 if typing.TYPE_CHECKING:
+    import pathlib
+
     from collections.abc import Iterator
 
     from .rule import Rule
@@ -82,7 +84,7 @@ def file(rule: Rule, content: str) -> bool:
     )
 
 
-def spans(rule: Rule, lines: list[str]) -> Iterator[Span]:
+def spans(file: pathlib.Path, rule: Rule, lines: list[str]) -> Iterator[Span]:
     # ~ O(r*l) time complexity :/
     """Get spans of lines that are ignored for a given rule.
 
@@ -91,6 +93,8 @@ def spans(rule: Rule, lines: list[str]) -> Iterator[Span]:
         If it's `closed` but not opened, the span will be ignored.
 
     Args:
+        file:
+            Path to the file for which spans are calculated.
         rule:
             Rule to check against
         lines:
@@ -121,4 +125,4 @@ def spans(rule: Rule, lines: list[str]) -> Iterator[Span]:
             start = None
 
     if start is not None:
-        raise error.IgnoreRangeError(start=start, line=lines[start])
+        raise error.IgnoreRangeError(file, start, line=lines[start])

@@ -100,7 +100,7 @@ class FunctionNoUtils(_NoUtils, code=1):  # noqa: NOUTILS0
     def ast_class(self):
         return ast.FunctionDef
 
-lintkit.run("linter.py", "file1.py", "file2.py")
+lintkit.run(["linter.py", "file1.py", "file2.py"])
 
 # Example output
 #/path/file1.py:23:17 NOUTILS0: ClassDef name contains util(s) word

@@ -208,7 +208,7 @@ import rules
 lintkit.settings.name: str = "MY-ADVANCED-LINTER"
 
 if __name__ == "__main__":
-    sys.exit(lintkit.run(*list(pathlib.Path(".").rglob("*.py"))))
+    sys.exit(lintkit.run(pathlib.Path(".").rglob("*.py")))
 ```
 
 ## Next steps

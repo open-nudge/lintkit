@@ -73,6 +73,8 @@ from __future__ import annotations
 import typing
 
 if typing.TYPE_CHECKING:
+    import pathlib
+
     from .rule import Rule
 
 
@@ -180,10 +182,12 @@ class IgnoreRangeError(LintkitError):
 
     """
 
-    def __init__(self, start: int, line: str) -> None:
+    def __init__(self, file: pathlib.Path, start: int, line: str) -> None:
         """Initialize the error.
 
         Args:
+            file:
+                File where the error occurred.
             start:
                 The line number where the ignore range started.
             line:
@@ -191,8 +195,12 @@ class IgnoreRangeError(LintkitError):
                 started.
 
         """
+        self.file = file
+        self.start = start
+        self.line = line
+
         self.message = (
-            "End of ignore range missing, please specify it. "
+            f"End of ignore range missing in: '{file}', please specify it. "
             f"Start of the range was at line '{start}' with content: '{line}'."
         )
         super().__init__(self.message)
@@ -257,6 +265,9 @@ class CodeNegativeError(LintkitError):
             rule:
                 The offending rule.
         """
+        self.code = code
+        self.rule = rule
+
         self.message = (
             f"Rule '{type(rule).__name__}' has code '{code}' "
             f"which should be a positive 'int'."
@@ -308,6 +319,10 @@ class CodeExistsError(LintkitError):
                 The rule that was registered previously.
 
         """
+        self.code = code
+        self.new_rule = new_rule
+        self.old_rule = old_rule
+
         self.message = (
             f"Rule '{type(new_rule).__name__}' cannot be registered with code '{code}' "
             f"as it is already taken by '{type(old_rule).__name__}'."
@@ -360,6 +375,8 @@ class CodeMissingError(LintkitError):
                 The rule that was not registered
                 via `code` keyword argument.
         """
+        self.rule = rule
+
         name = type(rule).__name__
         self.message = (
             f"Rule '{name}' is missing a 'code' attribute"

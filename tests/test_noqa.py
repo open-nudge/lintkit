@@ -60,6 +60,6 @@ def test_noqa(
             Request fixture to access the test context.
 
     """
-    for fail, _ in lintkit.run(request.path, output=True):  # pyright: ignore[reportGeneralTypeIssues]
+    for fail, _ in lintkit.run([request.path], output=True):  # pyright: ignore[reportGeneralTypeIssues]
         # Bandit false positive
         assert not fail  # nosemgrep: B101

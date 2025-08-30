@@ -43,6 +43,7 @@ from importlib.metadata import version
 
 from . import (
     check,
+    cli,
     error,
     loader,
     output,
@@ -63,6 +64,7 @@ __all__: list[str] = [
     "Value",
     "__version__",
     "check",
+    "cli",
     "error",
     "loader",
     "output",

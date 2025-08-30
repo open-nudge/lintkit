@@ -39,7 +39,7 @@ def test_run_codes(
 
     """
     for fail, rule in lintkit.run(  # pyright: ignore[reportGeneralTypeIssues]
-        request.path,
+        [request.path],
         include_codes=include_codes,
         exclude_codes=exclude_codes,
         output=True,
@@ -68,7 +68,7 @@ def test_run_output_smoke(
         getattr(lintkit.output, output) if output is not None else None
     )
 
-    _ = lintkit.run(request.path)
+    _ = lintkit.run([request.path])
 
 
 @pytest.mark.parametrize("end_mode", ("first", "all"))
@@ -90,8 +90,7 @@ def test_run_mode(
     """
     fails_counter = 0
     for fail, rule in lintkit.run(  # pyright: ignore[reportGeneralTypeIssues]
-        request.path,
-        "README.md",
+        [request.path, "README.md"],
         end_mode=end_mode,
         output=True,
     ):
