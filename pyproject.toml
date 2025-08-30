@@ -478,11 +478,13 @@ skip_empty = true
 
 [tool.fawltydeps]
 ignore_undeclared = [
+  "ruamel",
   "mkdocs_gen_files",
   "pytest",
   "hypothesis",
 ]
 ignore_unused = [
+  "ruamel.yaml",
   "basedpyright",
   "cairosvg",
   "cffconvert",
