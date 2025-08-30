@@ -252,7 +252,8 @@ import lintkit
 import rules
 
 if __name__ == "__main__":
-    sys.exit(lintkit.run("pyproject.toml"))
+    # Iterable of files has to be provided
+    sys.exit(lintkit.run(["pyproject.toml"]))
 ```
 
 > [!TIP]

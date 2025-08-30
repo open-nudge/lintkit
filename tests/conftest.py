@@ -196,7 +196,12 @@ class TestNotNode(Message, Python, Contains):
         # Additional checks should be here, but for this test cases
         # based on /data folder the line below will __always__ have values
         # as long as the /data does not change
-        if node.keys[0].value == "this":  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        if (
+            len(node.keys) != 0
+            and hasattr(node.keys[0], "value")
+            and node.keys
+            and node.keys[0].value == "this"  # pyright: ignore[reportAttributeAccessIssue, reportOptionalMemberAccess]
+        ):
             return {"this": {"test": 1}}
         return {}
 

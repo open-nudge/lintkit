@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import pathlib
 import typing
+import warnings
 
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
@@ -20,12 +21,13 @@ from . import rule as r
 
 # Changing to overload: https://typing.python.org/en/latest/spec/overload.html
 # does not help basedpyright unfortunately
-def run(
-    *files: pathlib.Path | str,
+def run(  # noqa: PLR0913
+    files: Iterable[pathlib.Path | str],
     include_codes: Iterable[int] | None = None,
     exclude_codes: Iterable[int] | None = None,
     end_mode: typing.Literal["first", "all"] = "all",
-    output: bool = False,
+    output: bool = False,  # noqa: FBT001, FBT002
+    warn: bool = False,  # noqa: FBT001, FBT002
 ) -> Iterator[tuple[bool, r.Rule]] | bool:
     """Run all the rules on a given file.
 
@@ -52,11 +54,11 @@ def run(
         # Assuming appropriate rules were already defined
 
 
-        def linter(*files: str):
-            sys.exit(lintkit.run(*files))
+        def linter(files: tuple[str]):
+            sys.exit(lintkit.run(files))
 
 
-        linter("a.py", "~/user/goo.py")
+        linter(("a.py", "~/user/goo.py"))
         ```
 
     An example of iteration:
@@ -65,7 +67,9 @@ def run(
         ```python
         import lintkit
 
-        for failed, rule in lintkit.run("file.yml", "another.yml", output=True):
+        for failed, rule in lintkit.run(
+            ("file.yml", "another.yml"), output=True
+        ):
             print(f"Rule {rule} returned with an exit code {failed}")
         ```
 
@@ -91,16 +95,21 @@ def run(
         output:
             If `True`, returns an iterator over all rules and their outputs.
             If `False`, returns whether any rule raised an error.
+        warn:
+            If `True`, warn about UnicodeDecodeError when encountering
+            files `lintkit` is unable to read. Default: `False`
+            (skips the file silently).
 
     Returns:
         An iterator over all rules and their outputs OR a boolean indicating
             whether any rule raised an error.
     """
     generator_or_callable = _run(
-        *files,
+        files,
         include_codes=include_codes,
         exclude_codes=exclude_codes,
         end_mode=end_mode,
+        warn=warn,
     )
     if output:
         return generator_or_callable
@@ -109,10 +118,11 @@ def run(
 
 
 def _run(  # noqa: C901, PLR0912
-    *files: pathlib.Path | str,
+    files: Iterable[pathlib.Path | str],
     include_codes: Iterable[int] | None = None,
     exclude_codes: Iterable[int] | None = None,
     end_mode: typing.Literal["first", "all"] = "all",
+    warn: bool = False,  # noqa: FBT001, FBT002
 ) -> Iterator[tuple[bool, r.Rule]]:
     """Internal function to run the rules on files.
 
@@ -132,6 +142,10 @@ def _run(  # noqa: C901, PLR0912
             A set of rule codes to ignore. If `None`, no rules are ignored.
         end_mode:
             Whether to stop after the first error or run all rules.
+        warn:
+            If `True`, warn about UnicodeDecodeError when encountering
+            files `lintkit` is unable to read. Default: `False`
+            (skips the file silently).
 
     Yields:
         Rule and whether it raised an error.
@@ -142,7 +156,12 @@ def _run(  # noqa: C901, PLR0912
 
     for file in files:
         path = pathlib.Path(file)
-        lines, content = _read(path)
+
+        output = _load(path, warn)
+        if output is None:
+            continue
+
+        lines, content = output
 
         # Setup and load necessary data for each rule
         for rule in rules:
@@ -154,7 +173,7 @@ def _run(  # noqa: C901, PLR0912
                 path,
                 content,
                 lines,
-                ignore_spans=list(_ignore.spans(rule, lines)),
+                ignore_spans=list(_ignore.spans(path, rule, lines)),
             )
             for fail in rule():
                 yield fail, rule
@@ -177,6 +196,36 @@ def _run(  # noqa: C901, PLR0912
             return  # pragma: no cover
 
 
+def _load(
+    path: pathlib.Path,
+    warn: bool,  # noqa: FBT001
+) -> tuple[list[str], str] | None:
+    """Load contents in `path`.
+
+    Args:
+        path:
+            File to load
+        warn:
+            If `True`, warn about UnicodeDecodeError when encountering
+            files `lintkit` is unable to read. Default: `False`
+            (skips the file silently).
+
+    Returns:
+        Error status and loaded lines and whole (unsplitted content).
+
+    """
+    try:
+        return _read(path)
+    except UnicodeDecodeError as _:
+        if warn:  # pragma: no cover
+            warnings.warn(
+                f"File '{path}' could not be loaded.",
+                category=UnicodeWarning,
+                stacklevel=4,
+            )
+        return None
+
+
 def _read(file: pathlib.Path) -> tuple[list[str], str]:
     """Setup the file for linting.
 
@@ -188,8 +237,6 @@ def _read(file: pathlib.Path) -> tuple[list[str], str]:
             - The file path
             - File content line by line
     """
-    with file.open("r") as f:
-        content = f.read()
-
+    content = file.read_text()
     lines = content.split("\n")
     return lines, content

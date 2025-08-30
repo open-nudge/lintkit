@@ -25,7 +25,7 @@ def test_config(request: pytest.FixtureRequest) -> None:
 
     """
     for fail, rule in lintkit.run(  # pyright: ignore[reportGeneralTypeIssues]
-        *list((request.path.parent / "data").glob("*")),
+        (request.path.parent / "data").glob("*"),
         output=True,
     ):
         # Config rules have codes in the range 201-299
@@ -46,7 +46,9 @@ def test_file_loader(request: pytest.FixtureRequest) -> None:
         request: Fixture request to get the path of the test file.
 
     """
-    for fail, rule in lintkit.run(request.path, output=True, end_mode="first"):  # pyright: ignore[reportGeneralTypeIssues]
+    for fail, rule in lintkit.run(  # pyright: ignore[reportGeneralTypeIssues]
+        [request.path], output=True, end_mode="first"
+    ):
         # File name only rules have codes in the range 301-399
         # see conftest.py for details.
         if fail:

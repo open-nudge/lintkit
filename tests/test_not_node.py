@@ -47,7 +47,7 @@ def test_not_node(
     fails = collections.defaultdict(int)
 
     for fail, rule in lintkit.run(  # pyright: ignore[reportGeneralTypeIssues]
-        *([request.path] * n_files), output=True, end_mode=end_mode
+        [request.path] * n_files, output=True, end_mode=end_mode
     ):
         if fail:
             fails[rule.code] += 1

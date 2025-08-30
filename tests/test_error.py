@@ -35,7 +35,7 @@ def test_name_missing(request: pytest.FixtureRequest) -> None:
     name = lintkit.settings.name
     lintkit.settings.name = None
     with pytest.raises(lintkit.error.NameMissingError):
-        _ = lintkit.run(request.path)
+        _ = lintkit.run([request.path])
     lintkit.settings.name = name
 
 
@@ -102,4 +102,4 @@ def test_wrong_ignore_range(request: pytest.FixtureRequest) -> None:
 
     """
     with pytest.raises(lintkit.error.IgnoreRangeError):
-        _ = lintkit.run(request.path)
+        _ = lintkit.run([request.path])

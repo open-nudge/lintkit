@@ -108,7 +108,7 @@ def main() -> None:
 
     # Run the linter with code inclusions and exclusions
     exit_code = lintkit.run(
-        "pyproject.toml",
+        ["pyproject.toml"],
         include_rules=config.get("include_rules", None),
         exclude_rules=config.get("exclude_rules", None),
     )
