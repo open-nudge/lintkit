@@ -114,7 +114,11 @@ def run(  # noqa: PLR0913
     if output:
         return generator_or_callable
     # Exhaust iterator and return whether any rule raised an error
-    return any(result[0] for result in generator_or_callable)
+    errored = False
+    for result in generator_or_callable:
+        if result[0]:
+            errored = True
+    return errored
 
 
 def _run(  # noqa: C901, PLR0912
@@ -158,7 +162,9 @@ def _run(  # noqa: C901, PLR0912
         path = pathlib.Path(file)
 
         output = _load(path, warn)
-        if output is None:
+
+        # This error may not be raised depending on the files being read
+        if output is None:  # pragma: no cover
             continue
 
         lines, content = output
@@ -216,7 +222,8 @@ def _load(
     """
     try:
         return _read(path)
-    except UnicodeDecodeError as _:
+    # This error may not be raised depending on the files being read
+    except UnicodeDecodeError as _:  # pragma: no cover
         if warn:  # pragma: no cover
             warnings.warn(
                 f"File '{path}' could not be loaded.",

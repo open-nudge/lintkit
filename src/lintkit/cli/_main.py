@@ -20,7 +20,7 @@ if typing.TYPE_CHECKING:
 
 def main(  # noqa: PLR0913
     version: str,
-    files_default: Iterable[str | pathlib.Path] | None = None,
+    files_default: Iterable[str | pathlib.Path],
     files_help: str | None = None,
     include_codes: Iterable[int] | None = None,
     exclude_codes: Iterable[int] | None = None,
