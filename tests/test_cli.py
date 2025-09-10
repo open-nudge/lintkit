@@ -18,10 +18,6 @@ if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
 
-@pytest.mark.parametrize(
-    "files_default",
-    ((p for p in pathlib.Path().rglob("*.py")), None),
-)
 @pytest.mark.parametrize("files_help", ("Go over files", None))
 @pytest.mark.parametrize("include_codes", ([1, 2, 3], None))
 @pytest.mark.parametrize("exclude_codes", ([1, 2, 3], None))
@@ -34,8 +30,7 @@ if typing.TYPE_CHECKING:
         ["rules"],
     ),
 )
-def test_smoke(  # noqa: PLR0913
-    files_default: Iterable[pathlib.Path | str],
+def test_smoke(
     files_help: str | None,
     include_codes: Iterable[int] | None,
     exclude_codes: Iterable[int] | None,
@@ -68,7 +63,11 @@ def test_smoke(  # noqa: PLR0913
     try:
         lintkit.cli.main(
             version="0.0.1",
-            files_default=files_default,
+            # Used to only process tests files, not everything,
+            # excluding things like __pypackages__ etc.
+            files_default=(
+                p for p in pathlib.Path().glob("./tests/**") if p.is_file()
+            ),
             files_help=files_help,
             include_codes=include_codes,
             exclude_codes=exclude_codes,

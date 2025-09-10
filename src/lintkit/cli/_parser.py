@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
 
 def root(
     version: str,
-    files_default: Iterable[str | pathlib.Path] | None = None,
+    files_default: Iterable[str | pathlib.Path],
     files_help: str | None = None,
     **kwargs: typing.Any,
 ) -> argparse.ArgumentParser:
@@ -64,7 +64,7 @@ def root(
 
 def _check(
     subparsers,  # noqa: ANN001  # pyright: ignore [reportUnknownParameterType, reportMissingParameterType]
-    default: Iterable[str | pathlib.Path] | None,
+    default: Iterable[str | pathlib.Path],
     help_: str | None,
 ) -> None:
     """Create `check` subcommand subparser.
@@ -96,12 +96,6 @@ def _check(
         """),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    if default is None:
-        default = (
-            p
-            for p in pathlib.Path().rglob("*")
-            if p.is_file() and ".git" not in str(p)
-        )
     if help_ is None:
         help_ = "Files to process (default: all files in current working directory, recursively)"
 
