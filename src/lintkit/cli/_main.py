@@ -19,12 +19,14 @@ if typing.TYPE_CHECKING:
 
 
 def main(  # noqa: PLR0913
+    *,
     version: str,
     files_default: Iterable[str | pathlib.Path],
     files_help: str | None = None,
     include_codes: Iterable[int] | None = None,
     exclude_codes: Iterable[int] | None = None,
     end_mode: typing.Literal["first", "all"] = "all",
+    pass_files: bool = True,
     args: list[str] | None = None,
     **kwargs: typing.Any,
 ) -> None:
@@ -67,6 +69,12 @@ def main(  # noqa: PLR0913
         end_mode:
             Whether to stop after the first error or run all rules
             (likely obtained from a config file or a-like).
+        pass_files:
+            Whether to pass files as CLI arguments or not.
+            If `False`, the `check` subcommand will not accept any files
+            as CLI arguments and will always use `files_default`.
+            Useful when you want to restrict users to only use
+            the default files (e.g. when integrating with a VCS hook).
         args:
             CLI arguments passed, if any (used mainly during testing).
             If no arguments are provided explicitly, the arguments from
@@ -78,8 +86,15 @@ def main(  # noqa: PLR0913
 
     """
     parsed_args = _parser.root(
-        version, files_default, files_help, **kwargs
+        version,
+        files_default,
+        files_help,
+        pass_files,
+        **kwargs,
     ).parse_args(args)
+
+    if not pass_files:
+        parsed_args.files = files_default
 
     if parsed_args.subcommand == "check":
         _subcommand.check(parsed_args, include_codes, exclude_codes, end_mode)
