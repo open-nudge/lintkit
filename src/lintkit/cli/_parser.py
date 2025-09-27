@@ -20,6 +20,7 @@ def root(
     version: str,
     files_default: Iterable[str | pathlib.Path],
     files_help: str | None = None,
+    pass_files: bool = True,  # noqa: FBT001, FBT002
     **kwargs: typing.Any,
 ) -> argparse.ArgumentParser:
     """Create the root CLI parser.
@@ -36,6 +37,12 @@ def root(
         files_help:
             CLI help message about files. It allows you to have a more accurate
             description of the defaults (e.g. only Python files, see example).
+        pass_files:
+            Whether to pass files as CLI arguments or not.
+            If `False`, the `check` subcommand will not accept any files
+            as CLI arguments and will always use `files_default`.
+            Useful when you want to restrict users to only use
+            the default files (e.g. when integrating with a VCS hook).
         **kwargs:
             Keyword arguments to pass to the `argparse.ArgumentParser`
 
@@ -56,7 +63,7 @@ def root(
         dest="subcommand",
         required=True,
     )
-    _check(subparsers, files_default, files_help)
+    _check(subparsers, files_default, files_help, pass_files)
     _rules(subparsers)
 
     return parser
@@ -66,6 +73,7 @@ def _check(
     subparsers,  # noqa: ANN001  # pyright: ignore [reportUnknownParameterType, reportMissingParameterType]
     default: Iterable[str | pathlib.Path],
     help_: str | None,
+    pass_files: bool = True,  # noqa: FBT001, FBT002
 ) -> None:
     """Create `check` subcommand subparser.
 
@@ -78,6 +86,12 @@ def _check(
         help_:
             CLI help message about files. It allows you to have a more accurate
             description of the defaults (e.g. only Python files, see example).
+        pass_files:
+            Whether to pass files as CLI arguments or not.
+            If `False`, the `check` subcommand will not accept any files
+            as CLI arguments and will always use `files_default`.
+            Useful when you want to restrict users to only use
+            the default files (e.g. when integrating with a VCS hook).
 
     """
     parser = subparsers.add_parser(
@@ -99,13 +113,15 @@ def _check(
     if help_ is None:
         help_ = "Files to process (default: all files in current working directory, recursively)"
 
-    _ = parser.add_argument(
-        "files",
-        nargs="*",
-        type=pathlib.Path,
-        default=default,
-        help=help_,
-    )
+    if pass_files:
+        _ = parser.add_argument(
+            "files",
+            nargs="*",
+            type=pathlib.Path,
+            default=default,
+            help=help_,
+        )
+
     _ = parser.add_argument(
         "--exclude_codes",
         nargs="*",
