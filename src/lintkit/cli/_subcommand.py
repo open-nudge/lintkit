@@ -45,12 +45,14 @@ def check(
 
     """
     sys.exit(
-        _run.run(  # pyright: ignore[reportArgumentType]
-            args.files,
-            include_codes,
-            exclude_codes,
-            end_mode,
-            output=False,
+        int(
+            _run.run(  # pyright: ignore[reportArgumentType]
+                args.files,
+                include_codes,
+                exclude_codes,
+                end_mode,
+                output=False,
+            )
         )
     )
 
