@@ -583,10 +583,7 @@ else:  # pragma: no cover
 if available.YAML:
     import ruamel.yaml
 
-    P = typing.ParamSpec("P")
-    T = typing.TypeVar("T")
-
-    def _decorator(func: Callable[P, T]) -> Callable[P, Value[T]]:
+    def _decorator[**P, T](func: Callable[P, T]) -> Callable[P, Value[T]]:
         """Decorator to wrap the return value of a YAML tree in `Value`.
 
         Args:
