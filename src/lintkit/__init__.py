@@ -53,7 +53,7 @@ from . import (
     type_definitions,
 )
 from ._run import run
-from ._value import Value
+from ._value import Pointer, Value
 
 __version__ = version("lintkit")
 """Current lintkit version."""
@@ -61,6 +61,7 @@ __version__ = version("lintkit")
 del version
 
 __all__: list[str] = [
+    "Pointer",
     "Value",
     "__version__",
     "check",

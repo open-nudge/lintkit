@@ -36,7 +36,7 @@ if typing.TYPE_CHECKING:
 T = typing.TypeVar("T")
 
 
-class Value(wrapt.ObjectProxy, typing.Generic[T]):  # pyright: ignore [reportUntypedBaseClass]
+class Value[T](wrapt.ObjectProxy):  # pyright: ignore [reportUntypedBaseClass]
     """`Value` used by rules for verification.
 
     Note:
@@ -249,14 +249,14 @@ class Pointer:
         class __at all__.
 
     Warning:
-        This class is not intended to be instantiated directly.
+        This class is (usually) not intended to be instantiated directly.
         It is used internally by the `Value` class to represent
         line and column numbers as a lightweight wrapper.
 
     Attributes:
         value:
-            Line or column number, or None if not available.
-            If None, it is represented as "-".
+            Line or column number, or `None` if not available.
+            If `None`, it is represented as "-".
 
     """
 
