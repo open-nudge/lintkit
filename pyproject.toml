@@ -339,6 +339,9 @@ lint.extend-ignore = [
   "ISC001",
   # Prefer absolute imports over relative imports from parent modules
   "TID252",
+  # While correct, semgrep does not support this yet
+  "UP046",
+  "UP047",
 ]
 
 lint.extend-per-file-ignores."tests/**.py" = [

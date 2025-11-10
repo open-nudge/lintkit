@@ -36,7 +36,7 @@ if typing.TYPE_CHECKING:
 T = typing.TypeVar("T")
 
 
-class Value[T](wrapt.ObjectProxy):  # pyright: ignore [reportUntypedBaseClass]
+class Value(wrapt.ObjectProxy, typing.Generic[T]):  # pyright: ignore [reportUntypedBaseClass]
     """`Value` used by rules for verification.
 
     Note:
