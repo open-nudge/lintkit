@@ -228,6 +228,10 @@ dev-pre-commit = [
   "pre-commit>=3",
 ]
 
+dev-prek = [
+  { include-group = "dev-pre-commit" },
+]
+
 dev-text = [
   "editorconfig-checker>=3",
   "codespell>=2",
