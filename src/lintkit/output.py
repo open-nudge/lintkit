@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -80,7 +80,7 @@ if typing.TYPE_CHECKING:
 from . import available
 
 
-def stdout(  # noqa: PLR0913
+def stdout(  # noqa: PLR0913, PLR0917
     name: str,
     code: int,
     message: str,
@@ -123,7 +123,7 @@ def stdout(  # noqa: PLR0913
 if available.RICH:
     import rich as r
 
-    def rich(  # noqa: PLR0913
+    def rich(  # noqa: PLR0913, PLR0917
         name: str,
         code: int,
         message: str,

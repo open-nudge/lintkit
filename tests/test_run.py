@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -12,6 +12,28 @@ import typing
 import pytest
 
 import lintkit
+
+
+def test_run_reset(request: pytest.FixtureRequest) -> None:
+    """Test that an interrupted run does not leak rule state.
+
+    Args:
+        request:
+            Pytest fixture request object
+            (used to get paths to test files and data).
+
+    """
+    tests = request.path.parent.resolve()
+    with pytest.raises(lintkit.error.IgnoreRangeError):
+        _ = lintkit.run(
+            (tests / "conftest.py", tests / "test_error.py"),
+            include_codes=(1, 102),
+        )
+
+    assert not lintkit.run(
+        (tests / "data").glob("*"),
+        include_codes=(102,),
+    )
 
 
 @pytest.mark.parametrize("include_codes", ((1, 2, 3), None))
@@ -103,4 +125,4 @@ def test_run_mode(
     else:
         # All fails should be returned (as many as files)
         # See test_not_node.py for details
-        assert fails_counter == 3  # noqa: PLR2004
+        assert fails_counter == 4  # noqa: PLR2004

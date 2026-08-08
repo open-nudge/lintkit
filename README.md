@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 SPDX-FileContributor: szymonmaszke <github@maszke.co>
 
 SPDX-License-Identifier: Apache-2.0
@@ -75,6 +75,7 @@ import lintkit
 # Set the name of the linter
 lintkit.settings.name = "NOUTILS"
 
+
 class _NoUtils(lintkit.check.Regex, lintkit.loader.Python, lintkit.rule.Node):
     def regex(self):
         # Regex to match util(s) variations in function/class name
@@ -89,6 +90,7 @@ class _NoUtils(lintkit.check.Regex, lintkit.loader.Python, lintkit.rule.Node):
     def message(self, _):
         return f"{self.ast_class()} name contains util(s) word"
 
+
 # Concrete rules and their codes
 # Disabling linter using noqas supported out of the box!
 class ClassNoUtils(_NoUtils, code=0):  # noqa: NOUTILS0
@@ -96,15 +98,17 @@ class ClassNoUtils(_NoUtils, code=0):  # noqa: NOUTILS0
     def ast_class(self):
         return ast.ClassDef
 
+
 class FunctionNoUtils(_NoUtils, code=1):  # noqa: NOUTILS0
     def ast_class(self):
         return ast.FunctionDef
 
+
 lintkit.run(["linter.py", "file1.py", "file2.py"])
 
 # Example output
-#/path/file1.py:23:17 NOUTILS0: ClassDef name contains util(s) word
-#/path/file2.py:73:21 NOUTILS1: FunctionDef name contains util(s) word
+# /path/file1.py:23:17 NOUTILS0: ClassDef name contains util(s) word
+# /path/file2.py:73:21 NOUTILS1: FunctionDef name contains util(s) word
 ```
 
 ## Installation

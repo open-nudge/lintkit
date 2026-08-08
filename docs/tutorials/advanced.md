@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 SPDX-FileContributor: szymonmaszke <github@maszke.co>
 
 SPDX-License-Identifier: Apache-2.0
@@ -107,6 +107,7 @@ import ast
 
 from collections.abc import Iterable
 
+
 class _Definition(lintkit.rule.Node, lintkit.loader.Python, abc.ABC):
     @abc.abstractmethod
     def ast_class(self) -> type[ast.ClassDef | ast.FunctionDef]:
@@ -124,6 +125,7 @@ class _Definition(lintkit.rule.Node, lintkit.loader.Python, abc.ABC):
 class _ClassDefinition(_Definition):
     def ast_class(self) -> type[ast.ClassDef]:
         return ast.ClassDef
+
 
 class _FunctionDefinition(_Definition):
     def ast_class(self) -> type[ast.FunctionDef]:
@@ -164,17 +166,20 @@ class ClassNoHelpers(_NoHelpers, _ClassDefinitions, code=1):
     def message(self, value: lintkit.Value[str]) -> str:
         return f"Class {value} contains helper(s) names."
 
+
 class ClassNoUtils(_NoUtils, _ClassDefinitions, code=2):
     """Verify `class` name contains no `utils` word (or its variations)."""
 
     def message(self, value: lintkit.Value[str]) -> str:
         return f"Class {value} contains utils(s) names."
 
+
 class FunctionNoHelpers(_NoHelpers, _FunctionDefinitions, code=3):
     """Verify `function` name contains no `helper` word (or its variations)."""
 
     def message(self, value: lintkit.Value[str]) -> str:
         return f"Function {value} contains helper(s) names."
+
 
 class FunctionNoUtils(_NoUtils, _FunctionDefinitions, code=4):
     """Verify `function` name contains no `utils` word (or its variations)."""

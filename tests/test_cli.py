@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -31,7 +31,7 @@ if typing.TYPE_CHECKING:
         ["rules"],
     ),
 )
-def test_smoke(  # noqa: PLR0913
+def test_smoke(  # noqa: PLR0913, PLR0917
     files_help: str | None,
     include_codes: Iterable[int] | None,
     exclude_codes: Iterable[int] | None,

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -38,7 +38,7 @@ def codes() -> tuple[int, ...]:
         A tuple of all registered rule codes.
 
     """
-    return tuple(_registry.keys())
+    return tuple(sorted(_registry))
 
 
 def rules() -> tuple[Rule, ...]:
@@ -48,7 +48,7 @@ def rules() -> tuple[Rule, ...]:
         A tuple of all registered rules.
 
     """
-    return tuple(_registry.values())
+    return tuple(_registry[code] for code in sorted(_registry))
 
 
 def inject(attribute: str, value: typing.Any) -> None:
@@ -108,7 +108,7 @@ def query(
 
     """
     codes = _process(_registry.keys(), include_codes, exclude_codes)
-    return (rule for code, rule in _registry.items() if code in codes)
+    return (_registry[code] for code in sorted(_registry) if code in codes)
 
 
 # This function is used by `Rule` class to register itself

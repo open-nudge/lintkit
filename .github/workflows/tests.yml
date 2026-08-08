@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -36,7 +36,5 @@ jobs:
     name: "Tests"
     permissions:
       contents: "read"
-    # yamllint disable rule:line-length
-    uses: "open-nudge/opentemplate/.github/workflows/tests-reusable.yml@main" # zizmor: ignore[unpinned-uses]
-    # yamllint enable rule:line-length
+    uses: "./.github/workflows/tests-reusable.yml"
 ...

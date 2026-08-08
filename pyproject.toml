@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -228,6 +228,10 @@ dev-pre-commit = [
   "pre-commit>=3",
 ]
 
+dev-prek = [
+  { include-group = "dev-pre-commit" },
+]
+
 dev-text = [
   "editorconfig-checker>=3",
   "codespell>=2",
@@ -342,6 +346,8 @@ lint.extend-ignore = [
   # While correct, semgrep does not support this yet
   "UP046",
   "UP047",
+  # Incorrectly doesn't see the header
+  "CPY001",
 ]
 
 lint.extend-per-file-ignores."tests/**.py" = [
@@ -557,6 +563,7 @@ exclude = [
   "build",
   "test",
   ".pdm-plugins",
+  "__pypackages__",
 ]
 
 [tool.basedpyright]
@@ -996,6 +1003,8 @@ check-toml = "check-toml"
 check-security = { cmd = [
   "semgrep",
   "scan",
+  "--experimental",
+  "--exclude=*pdm.lock",
   "--config=p/python",
   "--config=p/secrets",
   "--config=p/security-audit",

@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 SPDX-FileContributor: szymonmaszke <github@maszke.co>
 
 SPDX-License-Identifier: Apache-2.0
@@ -27,6 +27,7 @@ if typing.TYPE_CHECKING:
 
 # Define the name for our linter
 lintkit.settings.name = "MYLINTER"
+
 
 class NameDefined(lintkit.loader.TOML, lintkit.rule.Node, code=1):
     """Checks if `name` property is defined in `pyproject.toml`"""
@@ -60,7 +61,6 @@ class NameDefined(lintkit.loader.TOML, lintkit.rule.Node, code=1):
 
     def check(self, value: lintkit.Value[str | None]) -> bool:
         return value is not None
-
 ```
 
 Please note the following elements:
@@ -132,6 +132,7 @@ We could try to add appropriate verification like so:
 ```python
 ...
 
+
 def check(self, value: lintkit.Value[str | None]) -> bool:
     return value is not None and isinstance(value, str)
 ```
@@ -159,6 +160,7 @@ if typing.TYPE_CHECKING:
 # Define the name for our linter
 lintkit.settings.name = "MYLINTER"
 
+
 class PyProjectNameLoader(lintkit.loader.TOML, lintkit.rule.Node):
     """Safely loads `project.name` property of `pyproject.toml."""
 
@@ -184,7 +186,9 @@ class PyProjectNameLoader(lintkit.loader.TOML, lintkit.rule.Node):
             else:
                 yield lintkit.Value.from_toml(name)
 
+
 # Concrete definitions of the rules
+
 
 class NameExists(PyProjectNameLoader, code=1):
     """Checks if `name` property is defined in `pyproject.toml`"""
@@ -195,6 +199,7 @@ class NameExists(PyProjectNameLoader, code=1):
     def message(self, _: lintkit.Value[str | None]) -> str:
         return "Field 'project.name' was not defined"
 
+
 class NameIsString(PyProjectNameLoader, code=2):
     """Checks if `name` property is of type `str`."""
 
@@ -204,6 +209,7 @@ class NameIsString(PyProjectNameLoader, code=2):
     def message(self, value: lintkit.Value[str | None]) -> str:
         return f"Field 'project.name' is not a string (got {type(value)}"
 
+
 class NameNoWhitespaces(PyProjectNameLoader, code=3):
     """Checks if `name` is below has no spaces."""
 
@@ -212,6 +218,7 @@ class NameNoWhitespaces(PyProjectNameLoader, code=3):
 
     def message(self, _: lintkit.Value[str | None]) -> str:
         return "Field 'project.name' contains whitespaces"
+
 
 # Let's add one simple rule for fun
 class NameIsShort(PyProjectNameLoader, code=4):

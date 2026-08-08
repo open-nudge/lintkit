@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 SPDX-FileContributor: szymonmaszke <github@maszke.co>
 
 SPDX-License-Identifier: Apache-2.0
@@ -25,11 +25,13 @@ Let's do this by adjusting `NameIsShort` rule first (leave rest
 of the file as is):
 
 ```python
-... # rest of the file
+...  # rest of the file
+
 
 # Let's add one simple rule for fun
 class NameIsShort(PyProjectNameLoader, code=4):
     """Checks if `name` is below `N` characters."""
+
     def __init__(self):
         # Always call base constructor
         super().__init__()
@@ -94,6 +96,7 @@ import lintkit
 
 import rules
 
+
 def main() -> None:
     # Simply specify name of the tool
     config: dict = loadfig.config("mylinter")
@@ -114,6 +117,7 @@ def main() -> None:
     )
 
     sys.exit(exit_code)
+
 
 if __name__ == "__main__":
     main()

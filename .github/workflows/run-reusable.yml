@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -113,7 +113,7 @@ jobs:
     permissions:
       contents: "read"
     timeout-minutes: "${{ inputs.timeout-minutes }}"
-    runs-on: "ubuntu-latest"
+    runs-on: "${{ inputs.os }}"
     steps:
       - name: "Harden Runner"
         # yamllint disable rule:line-length
@@ -214,6 +214,7 @@ jobs:
 
       # nosemgrep
       - name: "Run command" # zizmor: ignore[template-injection]
+        shell: "bash"
         env:
           # GH_TOKEN is used by, for example, zizmor
           GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
@@ -222,9 +223,6 @@ jobs:
         run: |
           ${{ inputs.command }}
 
-      - name: "Check repository content"
-        run: >
-          ls -la
       - name: "Upload artifacts"
         if: >
           inputs.upload-path != ''

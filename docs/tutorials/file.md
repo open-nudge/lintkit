@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 SPDX-FileContributor: szymonmaszke <github@maszke.co>
 
 SPDX-License-Identifier: Apache-2.0
@@ -44,11 +44,13 @@ class _PythonFile(lintkit.rule.Node, lintkit.loader.File):
     def values(self) -> Iterable[lintkit.Value[str]]:
         yield lintkit.Value(str(self.file))
 
+
 class FileNoHelpers(_NoHelpers, _PythonFile, code=5):
     """Verify file name contains no `helper` word (or its variations)."""
 
     def message(self, value: lintkit.Value[str]) -> str:
         return f"File '{value}' contains helper(s) names."
+
 
 class FileNoUtils(_NoUtils, _PythonFile, code=6):
     """Verify file name contains no `utils` word (or its variations)."""
@@ -81,6 +83,8 @@ import itertools
 import lintkit
 
 lintkit.settings.name: str = "FILELINTER"
+
+
 # You might not inherit from `check.Check` as long as you fulfil the interface
 class TooManyConditionals(lintkit.loader.Python, lintkit.rule.File, code=0):
     def values(self) -> Iterable[lintkit.Value[str] | None]:
@@ -165,6 +169,7 @@ import ast
 import lintkit
 
 lintkit.settings.name: str = "ALLLINTER"
+
 
 class TooManyConditionals(lintkit.loader.Python, lintkit.rule.All, code=0):
     def __init__(self) -> None:
