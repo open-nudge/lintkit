@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -84,14 +84,14 @@ def rules(
     header = ("Name", "Enabled", "Description")
 
     rows: list[tuple[str, str | bool, str]] = [header]
-    for rule, code in zip(registry.rules(), registry.codes(), strict=False):
-        rows.append(
-            (
-                f"{settings.name}{code}",
-                code in enabled,
-                rule.description(),
-            )
+    rows.extend(
+        (
+            f"{settings.name}{rule.code}",
+            rule.code in enabled,
+            rule.description(),
         )
+        for rule in registry.rules()
+    )
 
     maximum_widths = tuple(
         max(len(str(row[i])) for row in rows) for i in range(len(header))
