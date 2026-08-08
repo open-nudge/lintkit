@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -113,7 +113,7 @@ Tip:
 
 """
 
-ignore_line: str = ".* noqa: .*{name}{code}.*"
+ignore_line: str = ".* noqa: .*{name}{code}(?!\\d).*"
 """The regex pattern registering a line to be ignored.
 
 Note:
@@ -122,7 +122,7 @@ Note:
     ```# noqa: E123, E456``` or ```# noqa: E123 E456 E789```.
 """
 
-ignore_file: str = ".* noqa-file: [^\n]*{name}{code}.*[^\n]*"
+ignore_file: str = ".* noqa-file: [^\n]*{name}{code}(?!\\d).*[^\n]*"
 """The regex pattern indicating the error should be ignored in the whole file.
 
 Note:
@@ -131,7 +131,7 @@ Note:
     ```# noqa-file: E123, E456``` or ```# noqa-file: E123 E456 E789```.
 """
 
-ignore_span_start: str = ".* noqa-start: .*{name}{code}.*"
+ignore_span_start: str = ".* noqa-start: .*{name}{code}(?!\\d).*"
 """The regex pattern registering start of ignoring.
 
 Warning:
@@ -144,7 +144,7 @@ Note:
     ```# noqa: E123, E456``` or ```# noqa: E123 E456 E789```.
 """
 
-ignore_span_end: str = ".* noqa-end: .*{name}{code}.*"
+ignore_span_end: str = ".* noqa-end: .*{name}{code}(?!\\d).*"
 """The regex pattern registering a line to be ignored.
 
 Warning:
