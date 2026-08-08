@@ -559,6 +559,7 @@ exclude = [
   "build",
   "test",
   ".pdm-plugins",
+  "__pypackages__",
 ]
 
 [tool.basedpyright]
@@ -998,6 +999,8 @@ check-toml = "check-toml"
 check-security = { cmd = [
   "semgrep",
   "scan",
+  "--experimental",
+  "--exclude=*pdm.lock",
   "--config=p/python",
   "--config=p/secrets",
   "--config=p/security-audit",

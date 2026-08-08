@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -27,21 +27,27 @@ jobs:
   sboms:
     name: "SBOMs"
     permissions:
-      id-token: "write"
-      attestations: "write"
+      actions: "read" # Required to upload SARIF file to CodeQL.
+      security-events: "write" # Required to upload SARIF file to security tab.
+      id-token: "write" # Required to get GH token to attest.
+      attestations: "write" # Required to upload attestation.
+      artifact-metadata: "write" # Required to create artifact metadata.
       contents: "read"
     # yamllint disable rule:line-length
     uses: "open-nudge/opentemplate/.github/workflows/release-sboms-reusable.yml@main" # zizmor: ignore[unpinned-uses]
     # yamllint enable rule:line-length
+    with:
+      upload-grype-artifact: true
+      upload-grype-sarif: true
 
   sarifs:
     name: "SARIFs"
     permissions:
       # Required to upload SARIF file to CodeQL.
       # See: https://github.com/github/codeql-action/issues/2117
-      actions: "read"
+      actions: "read" # Required to upload SARIF file to CodeQL.
       # Writing security events to upload SARIF file to security tab
-      security-events: "write"
+      security-events: "write" # Required to upload SARIF file to security tab.
       # Only need to read contents
       contents: "read"
     # yamllint disable rule:line-length
@@ -52,13 +58,12 @@ jobs:
     name: "Tests"
     permissions:
       contents: "read"
-    # yamllint disable rule:line-length
-    uses: "open-nudge/opentemplate/.github/workflows/tests-reusable.yml@main" # zizmor: ignore[unpinned-uses]
+    uses: "./.github/workflows/tests-reusable.yml"
 
   docs:
     name: "Docs"
     permissions:
-      contents: "write"
+      contents: "write" # Required to write documentation to gh-pages.
     # yamllint disable rule:line-length
     uses: "open-nudge/opentemplate/.github/workflows/run-reusable.yml@main" # zizmor: ignore[unpinned-uses]
     # yamllint enable rule:line-length
@@ -109,17 +114,18 @@ jobs:
       - "package-create"
     permissions:
       contents: "read"
-      pull-requests: "read"
+      pull-requests: "read" # Required to read PR metadata for changelog.
     # yamllint disable rule:line-length
     uses: "open-nudge/opentemplate/.github/workflows/run-reusable.yml@main" # zizmor: ignore[unpinned-uses]
     # yamllint enable rule:line-length
     with:
       download: true
+      full-checkout: true
       download-name: "dist-${{ github.sha }}"
       # yamllint disable rule:line-length
       command: |
         mkdir -p CHANGELOGS-${{ github.sha }}
-        export PYTHON_PACKAGE_VERSION="$(echo dist-${{ github.sha }}/dist/*.tar.gz | cut -d '-' -f 2 | cut -d '.' -f 1-3)"
+        export PYTHON_PACKAGE_VERSION=$(basename dist-${{ github.sha }}/dist/*.tar.gz | cut -d '-' -f 2)
         pdm run changelog > CHANGELOGS-${{ github.sha }}/CHANGELOG-${{ github.sha }}.md
         pdm run changelog-latest > CHANGELOGS-${{ github.sha }}/LATEST.md
       # yamllint enable rule:line-length
@@ -175,7 +181,7 @@ jobs:
     steps:
       - name: "Harden Runner"
         # yamllint disable rule:line-length
-        uses: "step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0" # v2.12.0
+        uses: "step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450" # v2.19.1
         # yamllint enable rule:line-length
         with:
           disable-sudo: true
@@ -183,7 +189,7 @@ jobs:
           allowed-endpoints: "${{ matrix.repository.endpoints }}"
       - name: "Download artifacts"
         # yamllint disable rule:line-length
-        uses: "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093" # v4.3.0
+        uses: "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" # v8.0.1
         with:
           name: "dist-${{ github.sha }}"
           path: "dist"
@@ -191,7 +197,7 @@ jobs:
         if: >
           ! matrix.repository.skip
         # yamllint disable rule:line-length
-        uses: "pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc" # v1.12.4
+        uses: "pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e" # v1.13.0
         # yamllint enable rule:line-length
         with:
           repository-url: "${{ matrix.repository.url }}"
@@ -215,7 +221,7 @@ jobs:
         # yamllint enable rule:indentation
       - name: "Upload artifacts"
         # yamllint disable rule:line-length
-        uses: "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02" # v4.6.2
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7.0.1
         # yamllint enable rule:line-length
         with:
           name: "dist-${{ github.sha }}"
@@ -233,8 +239,8 @@ jobs:
     permissions:
       # Required to upload SARIF file to CodeQL.
       # See: https://github.com/github/codeql-action/issues/2117
-      actions: "read"
-      contents: "write"
+      actions: "read" # Required to read the workflow path.
+      contents: "write" # Required to add assets to the release.
       id-token: "write" # To sign the provenance.
     # yamllint disable rule:line-length
     uses: "open-nudge/opentemplate/.github/workflows/release-slsa-provenance-reusable.yml@main" # zizmor: ignore[unpinned-uses]
@@ -247,7 +253,7 @@ jobs:
     needs:
       - "slsa-provenance"
     permissions:
-      contents: "write"
+      contents: "write" # Required to push release assets and documentation.
     # yamllint disable rule:line-length
     uses: "open-nudge/opentemplate/.github/workflows/release-upload.yml@main" # zizmor: ignore[unpinned-uses]
     # yamllint enable rule:line-length

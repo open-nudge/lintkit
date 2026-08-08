@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -48,9 +48,7 @@ jobs:
       Tests | ${{ matrix.os }} | python-${{ matrix.python }}
     permissions:
       contents: "read"
-    # yamllint disable rule:line-length
-    uses: "open-nudge/opentemplate/.github/workflows/run-reusable.yml@main" # zizmor: ignore[unpinned-uses]
-    # yamllint enable rule:line-length
+    uses: "./.github/workflows/run-reusable.yml"
     with:
       # yamllint disable rule:line-length
       command: |
@@ -59,6 +57,7 @@ jobs:
       # yamllint enable rule:line-length
       sparse-checkout: |
         **.py
+        tests/**
       group: "tests"
       core: true
       # yamllint disable rule:line-length
@@ -78,9 +77,7 @@ jobs:
     needs: "tests-reusable"
     permissions:
       contents: "read"
-    # yamllint disable rule:line-length
-    uses: "open-nudge/opentemplate/.github/workflows/run-reusable.yml@main" # zizmor: ignore[unpinned-uses]
-    # yamllint enable rule:line-length
+    uses: "./.github/workflows/run-reusable.yml"
     with:
       # yamllint disable rule:line-length
       command: |
