@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -19,10 +19,9 @@ Warning:
 
 from __future__ import annotations
 
-import typing
+import re
 
-if typing.TYPE_CHECKING:
-    import pytest
+import pytest
 
 import lintkit
 
@@ -44,6 +43,31 @@ def miss3() -> None:
 
 
 # noqa-end: TEST2, TEST1, TEST0
+
+
+@pytest.mark.parametrize(
+    ("pattern", "ignore"),
+    (
+        (lintkit.settings.ignore_line, "# noqa: RULE4"),
+        (lintkit.settings.ignore_file, "# noqa-file: RULE4"),
+        (lintkit.settings.ignore_span_start, "# noqa-start: RULE4"),
+        (lintkit.settings.ignore_span_end, "# noqa-end: RULE4"),
+    ),
+)
+def test_numeric_boundary(pattern: str, ignore: str) -> None:
+    """Ensure ignore patterns distinguish numeric rule suffixes.
+
+    Args:
+        pattern:
+            Public ignore pattern to test.
+        ignore:
+            Exact ignore text for rule 4.
+
+    """
+    regex = pattern.format(name="RULE", code=4)
+
+    assert re.search(regex, ignore) is not None
+    assert re.search(regex, f"{ignore}3") is None
 
 
 def test_noqa(
