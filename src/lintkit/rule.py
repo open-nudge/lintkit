@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -329,18 +329,20 @@ class Rule(abc.ABC):
             bool: Always True as the error was raised
         """
         printer = settings._output()  # noqa: SLF001
+        if self.code is None:  # pragma: no cover
+            raise e.CodeMissingError(self)
 
         printer(
             # This might be error prone for multiple linters defined
             # as the same package.
-            name=settings._name(),  # noqa: SLF001 # pyright: ignore[reportCallIssue]
+            name=settings._name(),  # noqa: SLF001
             code=self.code,
             message=message,
             file=self.file,
-            start_line=value._self_start_line,  # noqa: SLF001
-            start_column=value._self_start_column,  # noqa: SLF001
-            end_line=value._self_end_line,  # noqa: SLF001
-            end_column=value._self_end_column,  # noqa: SLF001
+            start_line=value._self_start_line.value,  # noqa: SLF001
+            start_column=value._self_start_column.value,  # noqa: SLF001
+            end_line=value._self_end_line.value,  # noqa: SLF001
+            end_column=value._self_end_column.value,  # noqa: SLF001
         )
         return True
 

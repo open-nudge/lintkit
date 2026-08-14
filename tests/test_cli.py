@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import json
 import pathlib
 import typing
 
@@ -92,3 +93,45 @@ def test_smoke(  # noqa: PLR0913, PLR0917
         assert "test_error.py" in str(e.file)  # noqa: PT017  # pragma: no cover
     except SystemExit as e:
         assert e.code in (0, 1)  # noqa: PT017
+
+
+@pytest.mark.parametrize(
+    ("content", "expected_code", "expected_records"),
+    (("value = 1\n", 0, 0), ("def test_run_example():\n    pass\n", 1, 1)),
+)
+def test_json_output(
+    content: str,
+    expected_code: int,
+    expected_records: int,
+    tmp_path: pathlib.Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Test JSON output for clean and failing CLI runs.
+
+    Args:
+        content:
+            Content of the checked file.
+        expected_code:
+            Expected CLI exit code.
+        expected_records:
+            Expected number of JSON records.
+        tmp_path:
+            Temporary directory used to create the checked file.
+        capsys:
+            Pytest fixture used to capture CLI output.
+
+    """
+    file = tmp_path / "example.py"
+    _ = file.write_text(content)
+    with pytest.raises(SystemExit) as exception:
+        lintkit.cli.main(
+            version="0.0.1",
+            files_default=(),
+            include_codes=(0,),
+            args=["check", "--output", "json", str(file)],
+        )
+    records = json.loads(capsys.readouterr().out)
+    assert (exception.value.code, len(records)) == (
+        expected_code,
+        expected_records,
+    )

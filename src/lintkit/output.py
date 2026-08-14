@@ -3,17 +3,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""Out-of-the-box output functions for the linter.
+"""Out-of-the-box output functors for the linter.
 
 ## Default
 
 Note:
-    This module provides a default function, which
-    chooses [`rich`](https://github.com/Textualize/rich)
+    This module provides a default functor, which chooses
+    [`Rich`][lintkit.output.Rich]
     to display linter output (if available) with
-    `stdout` fallback.
+    [`Stdout`][lintkit.output.Stdout] fallback.
 
-__All__ provided output functions follow this string output:
+Text outputs follow this format:
 
 ```python
 "<FILE>:<LINE>:<COLUMN> <RULE-TYPE><RULE-CODE>: <MESSAGE>"
@@ -26,167 +26,357 @@ For example:
 
 ## Custom
 
-To change `default` output you can use one of the provided
-options, e.g.:
+To change the default output you can use one of the provided options, e.g.:
 
 ```python
 import lintkit
 
-# To set `print` as the linter output.
-lintkit.settings.output = lintkit.output.stdout
+lintkit.settings.output = lintkit.output.Stdout()
 ```
 
-You can also define your own output function as long
-as you use a function with the following signature:
+Custom outputs subclass [`Output`][lintkit.output.Output] and implement both
+the call and finalization stages:
 
 ```python
-def my_output(
-    *,
-    name: str,
-    code: int,
-    message: str,
-    file: pathlib.Path | None = None,
-    start_line: int | None = None,
-    start_column: int | None = None,
-    end_line: int | None = None,
-    end_column: int | None = None,
-) -> None:
-    pass
-```
+import pathlib
 
-which should (somehow) output the linter results (e.g. to a file).
-
-Note:
-    You don't have to use all values (e.g. `end_line`),
-    use only the values you find necessary (provided `output` functions do not
-    use `end_line` nor `end_column` even if these are present.
-
-Warning:
-    Different `loader`s __might not__ provide some values
-    (these which might be `None` above), your custom function
-    should handle these cases.
-
-"""
-
-from __future__ import annotations
-
-import typing
-
-if typing.TYPE_CHECKING:
-    import pathlib
-
-    from . import type_definitions
-
-from . import available
+import lintkit
 
 
-def stdout(  # noqa: PLR0913, PLR0917
-    name: str,
-    code: int,
-    message: str,
-    file: pathlib.Path | None = None,
-    start_line: int | None = None,
-    start_column: int | None = None,
-    end_line: int | None = None,  # noqa: ARG001 # pyright: ignore[reportUnusedParameter]
-    end_column: int | None = None,  # noqa: ARG001 # pyright: ignore[reportUnusedParameter]
-) -> None:
-    """Output linter message to `stdout` using `print`.
-
-    Info:
-        Default `output` if [`rich`](https://github.com/Textualize/rich)
-        is not available.
-
-    Args:
-        name:
-            Name of the linter (equal to `lintkit.settings.name`)
-        code:
-            Numerical code of specific rule (e.g. `12`).
-        message:
-            Error message of specific rule.
-        file:
-            Full path to the file where the error occurred.
-        start_line:
-            Start line number of the error, if any.
-        start_column:
-            Start column number of the error, if any.
-        end_line:
-            End line number of the error, if any (unused).
-        end_column:
-            End column number of the error, if any (unused).
-
-    """
-    print(  # noqa: T201
-        f"{file or 'ALL'}:{start_line}:{start_column}: {name}{code}: {message}",
-    )
-
-
-if available.RICH:
-    import rich as r
-
-    def rich(  # noqa: PLR0913, PLR0917
+class MyOutput(lintkit.output.Output):
+    def __call__(
+        self,
         name: str,
         code: int,
         message: str,
         file: pathlib.Path | None = None,
         start_line: int | None = None,
         start_column: int | None = None,
-        end_line: int | None = None,  # noqa: ARG001 # pyright: ignore[reportUnusedParameter]
-        end_column: int | None = None,  # noqa: ARG001 # pyright: ignore[reportUnusedParameter]
+        end_line: int | None = None,
+        end_column: int | None = None,
     ) -> None:
-        """Output linter message to `stdout` using `rich`.
+        print("ERROR!")
+        # Or anything else you want
 
-        Info:
-            Default `output` function (if `rich` library
-            is available).
+
+lintkit.settings.output = MyOutput()
+```
+
+Custom subclasses that override `__init__()` must call `super().__init__()` to
+initialize the inherited context state.
+
+Note:
+    You don't have to use all values (e.g. `end_line`); use only the values
+    you find necessary. Provided output functors do not use `end_line` nor
+    `end_column` even if these are present.
+
+The runner calls the functor for each violation and calls `finalize()` once
+when the run ends. This allows outputs such as [`JSON`][lintkit.output.JSON]
+to accumulate records and serialize one complete result at finalization.
+
+An output can also be used temporarily and will restore the previously
+configured output when its context exits:
+
+```python
+with lintkit.output.JSON() as output:
+    assert lintkit.settings.output is output
+    lintkit.run(("a.py", "b.py"))
+```
+
+Warning:
+    Different loaders might not provide some location values. Custom outputs
+    should handle `None` for unavailable files, lines, and columns.
+
+"""
+
+from __future__ import annotations
+
+import abc
+import json
+import typing
+
+if typing.TYPE_CHECKING:
+    import pathlib
+    import types
+
+from . import available, settings
+
+
+class Output(abc.ABC):
+    """Interface implemented by stateful linter outputs."""
+
+    def __init__(self) -> None:
+        """Initialize output context state.
 
         Note:
-            See [here](https://github.com/Textualize/rich) for more
-            information about the `rich` library.
+            Custom subclasses that override `__init__()` must call this method
+            with `super().__init__()`.
 
-        Tip:
-            You can install compatible `rich` using `extras`,
-            e.g. `pip install lintkit[rich]` or
-            `pip install lintkit[output]`
+        """
+        self._previous_outputs: list[Output | None] = []
+
+    def __enter__(self) -> typing.Self:
+        """Install this instance as the active output.
+
+        Returns:
+            This output instance.
+
+        """
+        self._previous_outputs.append(settings.output)
+        settings.output = self
+        return self
+
+    def __exit__(
+        self,
+        _: type[BaseException] | None,
+        __: BaseException | None,
+        ___: types.TracebackType | None,
+    ) -> typing.Literal[False]:
+        """Finish the outermost session and restore the previous output.
+
+        Args:
+            exception_type:
+                Type of the exception raised by the context body, if any.
+            exception:
+                Exception raised by the context body, if any.
+            traceback:
+                Traceback for the exception raised by the context body, if
+                any.
+
+        Returns:
+            `False`, so exceptions are never suppressed.
+
+        """
+        previous = self._previous_outputs.pop()
+        if self._previous_outputs:
+            settings.output = previous
+            return False
+
+        try:
+            settings.output = self
+            self.finalize()
+        finally:
+            settings.output = previous
+        return False
+
+    @abc.abstractmethod
+    def __call__(  # noqa: PLR0913, PLR0917
+        self,
+        name: str,
+        code: int,
+        message: str,
+        file: pathlib.Path | None = None,
+        start_line: int | None = None,
+        start_column: int | None = None,
+        end_line: int | None = None,
+        end_column: int | None = None,
+    ) -> None:
+        """Process one rule violation.
 
         Args:
             name:
-                Name of the linter (equal to `lintkit.settings.name`)
+                Name of the linter (equal to `lintkit.settings.name`).
             code:
-                Numerical code of specific rule (e.g. `12`).
+                Numerical code of the rule.
             message:
-                Error message of specific rule.
+                Rule violation message.
             file:
-                Full path to the file where the error occurred.
+                Path to the file where the violation occurred, if available.
             start_line:
-                Start line number of the error, if any.
+                Start line number of the violation, if available.
             start_column:
-                Start column number of the error, if any.
+                Start column number of the violation, if available.
             end_line:
-                End line number of the error, if any (unused).
+                End line number of the violation, if available.
             end_column:
-                End column number of the error, if any (unused).
+                End column number of the violation, if available.
 
         """
-        r.print(
-            f"[bold]{file or 'ALL'}[/bold]:{start_line}[cyan]:[/cyan]{start_column}: [bold red]{name}{code}[/bold red] {message}",  # noqa: E501
+        raise NotImplementedError
+
+    def finalize(self) -> None:
+        """Finalize and emit any accumulated output.
+
+        Pass-through by default.
+
+        """
+        return
+
+
+class Stdout(Output):
+    """Output each linter message to standard output using `print`."""
+
+    @typing.override
+    def __call__(
+        self,
+        name: str,
+        code: int,
+        message: str,
+        file: pathlib.Path | None = None,
+        start_line: int | None = None,
+        start_column: int | None = None,
+        end_line: int | None = None,
+        end_column: int | None = None,
+    ) -> None:
+        """Print one linter message.
+
+        Info:
+            Default `output` if [`rich`](https://github.com/Textualize/rich)
+            is not available.
+
+        Args:
+            name:
+                Name of the linter (equal to `lintkit.settings.name`).
+            code:
+                Numerical code of the rule.
+            message:
+                Rule violation message.
+            file:
+                Path to the file where the violation occurred, if available.
+            start_line:
+                Start line number of the violation, if available.
+            start_column:
+                Start column number of the violation, if available.
+            end_line:
+                End line number of the violation, if available (unused).
+            end_column:
+                End column number of the violation, if available (unused).
+
+        """
+        line = start_line if start_line is not None else "-"
+        column = start_column if start_column is not None else "-"
+        print(  # noqa: T201
+            f"{file or 'ALL'}:{line}:{column}: {name}{code}: {message}",
         )
+
+
+if available.RICH:
+    import rich
+
+    class Rich(Output):
+        """Output each linter message to standard output using `rich`."""
+
+        @typing.override
+        def __call__(
+            self,
+            name: str,
+            code: int,
+            message: str,
+            file: pathlib.Path | None = None,
+            start_line: int | None = None,
+            start_column: int | None = None,
+            end_line: int | None = None,
+            end_column: int | None = None,
+        ) -> None:
+            """Print one richly formatted linter message.
+
+            Info:
+                Default `output` functor (if `rich` library is available).
+
+            Note:
+                See [here](https://github.com/Textualize/rich) for more
+                information about the `rich` library.
+
+            Tip:
+                You can install compatible `rich` using `extras`,
+                e.g. `pip install lintkit[rich]` or
+                `pip install lintkit[output]`.
+
+            Args:
+                name:
+                    Name of the linter (equal to `lintkit.settings.name`).
+                code:
+                    Numerical code of the rule.
+                message:
+                    Rule violation message.
+                file:
+                    Path to the file where the violation occurred, if
+                    available.
+                start_line:
+                    Start line number of the violation, if available.
+                start_column:
+                    Start column number of the violation, if available.
+                end_line:
+                    End line number of the violation, if available (unused).
+                end_column:
+                    End column number of the violation, if available (unused).
+
+            """
+            line = start_line if start_line is not None else "-"
+            column = start_column if start_column is not None else "-"
+            rich.print(
+                f"[bold]{file or 'ALL'}[/bold]:{line}[cyan]:[/cyan]{column}: [bold red]{name}{code}[/bold red] {message}",  # noqa: E501
+            )
+
 else:  # pragma: no cover
     pass
 
 
-# Used internally by `rule` when finding appropriate output venue
-def _default() -> type_definitions.Output:  # pyright: ignore[reportUnusedFunction]
-    """Get the default output function.
+class JSON(Output):
+    """Accumulate violations and output one valid JSON array."""
 
-    Will return the `rich` output function if the `rich` library is installed,
-    otherwise the `stdout` output function.
+    def __init__(self) -> None:
+        """Initialize an empty result collection."""
+        super().__init__()
+        self._results: list[dict[str, str | int | None]] = []
 
-    Warning:
-        This function is used internally and should not be called directly.
+    @typing.override
+    def __call__(
+        self,
+        name: str,
+        code: int,
+        message: str,
+        file: pathlib.Path | None = None,
+        start_line: int | None = None,
+        start_column: int | None = None,
+        end_line: int | None = None,
+        end_column: int | None = None,
+    ) -> None:
+        """Accumulate one violation record.
+
+        Args:
+            name:
+                Name of the linter (equal to `lintkit.settings.name`).
+            code:
+                Numerical code of the rule.
+            message:
+                Rule violation message.
+            file:
+                Path to the file where the violation occurred, if available.
+            start_line:
+                Start line number of the violation, if available.
+            start_column:
+                Start column number of the violation, if available (unused).
+            end_line:
+                End line number of the violation, if available (unused).
+            end_column:
+                End column number of the violation, if available (unused).
+
+        """
+        self._results.append(
+            {
+                "code": f"{name}{code}",
+                "message": message,
+                "file": str(file.resolve()) if file is not None else None,
+                "line": start_line,
+            }
+        )
+
+    @typing.override
+    def finalize(self) -> None:
+        """Print all accumulated records as one pretty JSON array."""
+        print(json.dumps(self._results, indent=2))  # noqa: T201
+
+
+# Used internally by `settings` when finding the appropriate output venue
+def _default() -> Output:  # pyright: ignore[reportUnusedFunction]
+    """Create the default output functor.
 
     Returns:
-        The default output function
+        A new rich output when `rich` is installed, otherwise a new standard
+            output.
+
     """
     if available.RICH:
-        return rich
-    return stdout  # pragma: no cover
+        return Rich()
+    return Stdout()  # pragma: no cover

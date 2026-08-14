@@ -262,17 +262,6 @@ class Pointer:
 
     value: int | None = None
 
-    def __str__(self) -> str:  # pyright: ignore [reportImplicitOverride]
-        """String representation of the pointer.
-
-        Returns:
-            String representation of the pointer value, or `"-"` if `None`.
-
-        """
-        if self.value is None:
-            return "-"
-        return str(self.value)
-
     def __bool__(self) -> bool:
         """Check if the pointer has a `value`.
 

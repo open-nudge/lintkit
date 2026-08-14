@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -15,34 +15,8 @@ from __future__ import annotations
 
 import typing
 
-from pathlib import Path
-
 if typing.TYPE_CHECKING:
     from collections.abc import Hashable
-
-Output = typing.Callable[
-    [
-        str,
-        int,
-        str,
-        Path | None,
-        int | None,
-        int | None,
-        int | None,
-        int | None,
-    ],
-    None,
-]
-"""Type of function which is used to output errors.
-
-Info:
-    See [`lintkit.output`][] and [`lintkit.settings.output`][]
-    for more information.
-
-Tip:
-    Custom `output` functions should follow this signature.
-
-"""
 
 
 class GetItem(typing.Protocol):

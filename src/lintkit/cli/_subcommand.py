@@ -10,7 +10,7 @@ from __future__ import annotations
 import sys
 import typing
 
-from .. import _run, registry, settings
+from .. import _run, output, registry, settings
 
 if typing.TYPE_CHECKING:
     import argparse
@@ -44,17 +44,21 @@ def check(
             (likely obtained from a config file or a-like).
 
     """
-    sys.exit(
-        int(
-            _run.run(  # pyright: ignore[reportArgumentType]
-                args.files,
-                include_codes,
-                exclude_codes,
-                end_mode,
-                output=False,
+    selected_output = (
+        output.JSON() if args.output == "json" else settings._output()  # noqa: SLF001
+    )
+    with selected_output:
+        sys.exit(
+            int(
+                _run.run(  # pyright: ignore[reportArgumentType]
+                    args.files,
+                    include_codes,
+                    exclude_codes,
+                    end_mode,
+                    output=False,
+                )
             )
         )
-    )
 
 
 def rules(
