@@ -619,6 +619,7 @@ reportPrivateUsage = "none"
 reportImportCycles = "none"
 
 extraPaths = [
+  "src",
   #
   #           DO NOT EDIT UNTIL end marker
   #

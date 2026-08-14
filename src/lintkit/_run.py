@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
 
-from . import _ignore, registry
+from . import _ignore, registry, settings
 from . import rule as r
 
 
@@ -154,59 +154,63 @@ def _run(  # noqa: C901, PLR0912, PLR0915
     Yields:
         Rule and whether it raised an error.
     """
-    rules = list(
-        registry.query(include_codes=include_codes, exclude_codes=exclude_codes)
-    )
-
-    try:
-        for file in files:
-            path = pathlib.Path(file)
-
-            output = _load(path, warn)
-
-            # This error may not be raised depending on the files being read
-            if output is None:  # pragma: no cover
-                continue
-
-            lines, content = output
-
-            # Setup and load necessary data for each rule
-            for rule in rules:
-                # Rule will have `skip` as it inherits from both Loader and Rule
-                if rule.skip(path, content) or _ignore.file(rule, content):  # pyright: ignore[reportAttributeAccessIssue]
-                    continue
-                # Rule will have `_run_load` due to above
-                rule._run_load(  # noqa: SLF001  # pyright: ignore[reportAttributeAccessIssue]
-                    path,
-                    content,
-                    lines,
-                    ignore_spans=list(_ignore.spans(path, rule, lines)),
+    rules: list[r.Rule] = []
+    with settings._output():  # noqa: SLF001
+        try:
+            rules = list(
+                registry.query(
+                    include_codes=include_codes,
+                    exclude_codes=exclude_codes,
                 )
-                for fail in rule():
-                    yield fail, rule
-                    if fail and end_mode == "first":
-                        return
-                if isinstance(rule, r.File):
-                    fail = rule._run_finalize()  # noqa: SLF001
-                    yield fail, rule
-                    if fail and end_mode == "first":
-                        return
+            )
+            for file in files:
+                path = pathlib.Path(file)
 
-        for rule in rules:
-            # Rule will have `_run_load` as it inherits from both
-            # Loader and Rule.
-            rule._run_reset()  # noqa: SLF001  # pyright: ignore[reportAttributeAccessIssue]
+                loaded = _load(path, warn)
 
-        for rule in (rule for rule in rules if isinstance(rule, r.All)):
-            fail = rule._run_finalize()  # noqa: SLF001
-            yield fail, rule
-            if fail and end_mode == "first":
-                return  # pragma: no cover
-    finally:
-        for rule in rules:
-            rule._run_reset()  # noqa: SLF001  # pyright: ignore[reportAttributeAccessIssue]
-            if isinstance(rule, (r.File, r.All)):
-                rule.n_fails = 0
+                # This error may not be raised depending on the files being read
+                if loaded is None:  # pragma: no cover
+                    continue
+
+                lines, content = loaded
+
+                # Setup and load necessary data for each rule
+                for rule in rules:
+                    # Rule has `skip` because it inherits from Loader and Rule.
+                    if rule.skip(path, content) or _ignore.file(rule, content):  # pyright: ignore[reportAttributeAccessIssue]
+                        continue
+                    # Rule will have `_run_load` due to above
+                    rule._run_load(  # noqa: SLF001  # pyright: ignore[reportAttributeAccessIssue]
+                        path,
+                        content,
+                        lines,
+                        ignore_spans=list(_ignore.spans(path, rule, lines)),
+                    )
+                    for fail in rule():
+                        yield fail, rule
+                        if fail and end_mode == "first":
+                            return
+                    if isinstance(rule, r.File):
+                        fail = rule._run_finalize()  # noqa: SLF001
+                        yield fail, rule
+                        if fail and end_mode == "first":
+                            return
+
+            for rule in rules:
+                # Rule will have `_run_load` as it inherits from both
+                # Loader and Rule.
+                rule._run_reset()  # noqa: SLF001  # pyright: ignore[reportAttributeAccessIssue]
+
+            for rule in (rule for rule in rules if isinstance(rule, r.All)):
+                fail = rule._run_finalize()  # noqa: SLF001
+                yield fail, rule
+                if fail and end_mode == "first":
+                    return  # pragma: no cover
+        finally:
+            for rule in rules:
+                rule._run_reset()  # noqa: SLF001  # pyright: ignore[reportAttributeAccessIssue]
+                if isinstance(rule, (r.File, r.All)):
+                    rule.n_fails = 0
 
 
 def _load(

@@ -79,11 +79,6 @@ Example:
 
 from __future__ import annotations
 
-import typing
-
-if typing.TYPE_CHECKING:
-    from . import type_definitions
-
 from . import error
 from . import output as output_module
 
@@ -97,19 +92,20 @@ Warning:
 
 """
 
-output: type_definitions.Output | None = None
-"""The output/printing function.
+output: output_module.Output | None = None
+"""The configured output functor.
 
-By default (if `None`), will use [`lintkit.output.rich`][lintkit.output.rich]
+By default (if `None`), will use [`lintkit.output.Rich`][lintkit.output.Rich]
 if the `rich` library is installed, otherwise
-[`lintkit.output.stdout`][].
+[`lintkit.output.Stdout`][].
 
 Note:
-    Custom function might be provided __by the creator or user__
+    A custom [`lintkit.output.Output`][] subclass instance might be provided
+    by the creator or user.
 
 Tip:
-    Check [`lintkit.type_definitions.Output`][]
-    for a full signature your custom function should fulfill.
+    [`lintkit.output.JSON`][] accumulates records during a run and prints one
+    complete JSON array when the runner finalizes it.
 
 """
 
@@ -174,14 +170,11 @@ def _name() -> str:  # pyright: ignore[reportUnusedFunction]
 
 
 # Used internally by `rule.Rule`
-def _output() -> type_definitions.Output:  # pyright: ignore[reportUnusedFunction]
-    """Get the output function.
+def _output() -> output_module.Output:  # pyright: ignore[reportUnusedFunction]
+    """Get the output functor.
 
     Returns:
-        The output function
-
-    Raises:
-        OutputFunctionMissingError: If the output function is not set
+        The configured output functor, or a new default functor.
     """
     if output is None:
         return output_module._default()  # noqa: SLF001

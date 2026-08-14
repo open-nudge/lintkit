@@ -70,27 +70,26 @@ def test_run_codes(
             assert rule.code == 0
 
 
-@pytest.mark.parametrize("output", ("rich", "stdout", None))
+@pytest.mark.parametrize(
+    "output", (lintkit.output.Rich(), lintkit.output.Stdout())
+)
 def test_run_output_smoke(
-    output: str | None,
+    output: lintkit.output.Output,
     request: pytest.FixtureRequest,
 ) -> None:
     """Smoke test `output` change in `lintkit.run`.
 
     Args:
         output:
-            Output `function` to use in the run.
-            If `None`, the default output will be used.
+            Output implementation to use in the run.
         request:
             Pytest fixture request object
             (used to get the path to the test file).
 
     """
-    lintkit.settings.output = (
-        getattr(lintkit.output, output) if output is not None else None
-    )
-
-    _ = lintkit.run([request.path])
+    with output:
+        _ = lintkit.run([request.path])
+    assert lintkit.settings.output is None
 
 
 @pytest.mark.parametrize("end_mode", ("first", "all"))
