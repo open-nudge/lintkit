@@ -111,6 +111,30 @@ def rules(
     sys.exit(0)
 
 
+def examples(names: Iterable[str]) -> typing.NoReturn:
+    """Display usage examples for selected rules.
+
+    Args:
+        names:
+            Full rule names to display. An empty iterable selects all rules.
+
+    """
+    name = settings._name()  # noqa: SLF001
+    rules = {f"{name}{rule.code}": rule for rule in registry.rules()}
+    selected = rules.values() if not names else (rules[name] for name in names)
+    groups: list[str] = []
+    for rule in selected:
+        rule_examples = rule.examples()
+        if rule_examples:
+            groups.append(
+                f"{name}{rule.code}:\n\n" + "\n\n".join(rule_examples)
+            )
+
+    if groups:
+        print("\n\n".join(groups))  # noqa: T201
+    sys.exit(0)
+
+
 def _format_row(
     row: tuple[str, bool | str, str], maximum_widths: tuple[int, ...]
 ) -> str:

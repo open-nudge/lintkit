@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -100,6 +100,8 @@ def main(  # noqa: PLR0913
         _subcommand.check(parsed_args, include_codes, exclude_codes, end_mode)
     if parsed_args.subcommand == "rules":
         _subcommand.rules(include_codes, exclude_codes)
+    if parsed_args.subcommand == "examples":
+        _subcommand.examples(parsed_args.names)
 
     # Cannot be anything else, but left to make pyright feel at peace
     raise error.LintkitInternalError  # pragma: no cover

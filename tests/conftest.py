@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -151,9 +151,27 @@ class TestNode(Regex, Python, lintkit.rule.Node):
 class TestRun(TestNode, code=0):
     """Rule to test basic `run`."""
 
+    def examples(self) -> list[str]:
+        """Return examples for a basic run.
+
+        Returns:
+            Stable usage examples for CLI tests.
+
+        """
+        return ["def test_run_example():\n    pass", "test_run = True"]
+
 
 class TestNoqa(TestNode, code=1):
     """Rule to test `noqa` strings (should be largely ignored)."""
+
+    def examples(self) -> list[str]:
+        """Return an example for a `noqa` run.
+
+        Returns:
+            A stable usage example for CLI tests.
+
+        """
+        return ["def miss_example():\n    pass"]
 
 
 # Not Node rules

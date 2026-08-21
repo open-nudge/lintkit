@@ -12,6 +12,8 @@ import pathlib
 import textwrap
 import typing
 
+from .. import registry, settings
+
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
@@ -65,6 +67,7 @@ def root(
     )
     _check(subparsers, files_default, files_help, pass_files)
     _rules(subparsers)
+    _examples(subparsers)
 
     return parser
 
@@ -192,4 +195,35 @@ def _rules(subparsers) -> None:  # noqa: ANN001  # pyright: ignore [reportUnknow
         "rules",
         description="Display available rules, their status and description.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+
+def _examples(subparsers) -> None:  # noqa: ANN001  # pyright: ignore [reportUnknownParameterType, reportMissingParameterType]
+    """Create `examples` subcommand subparser.
+
+    Args:
+        subparsers:
+            Object where this subparser will be registered.
+
+    """
+    summary_limit = 5
+
+    parser = subparsers.add_parser(
+        "examples",
+        description="Display usage examples for available rules.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    names = tuple(f"{settings._name()}{code}" for code in registry.codes())  # noqa: SLF001
+    summary = (
+        names
+        if len(names) <= summary_limit
+        else (*names[:2], "...", *names[-2:])
+    )
+    _ = parser.add_argument(
+        "names",
+        nargs="*",
+        choices=names,
+        metavar="NAME",
+        help=f"Rule names to display ({', '.join(summary)}).",
     )

@@ -135,3 +135,56 @@ def test_json_output(
         expected_code,
         expected_records,
     )
+
+
+@pytest.mark.parametrize(
+    ("names", "expected"),
+    (
+        (
+            [],
+            (
+                "TEST0:\n\ndef test_run_example():\n    pass\n\ntest_run = True\n\n"
+                "TEST1:\n\ndef miss_example():\n    pass\n"
+            ),
+        ),
+        (
+            ["TEST1", "TEST0"],
+            (
+                "TEST1:\n\ndef miss_example():\n    pass\n\n"
+                "TEST0:\n\ndef test_run_example():\n    pass\n\ntest_run = True\n"
+            ),
+        ),
+        (
+            ["TEST0", "TEST0"],
+            (
+                "TEST0:\n\ndef test_run_example():\n    pass\n\ntest_run = True\n\n"
+                "TEST0:\n\ndef test_run_example():\n    pass\n\ntest_run = True\n"
+            ),
+        ),
+        (["TEST101", "TEST1"], "TEST1:\n\ndef miss_example():\n    pass\n"),
+        (["TEST101"], ""),
+    ),
+)
+def test_examples(
+    names: list[str],
+    expected: str,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Test displayed examples, selector order, duplicates, and empty rules.
+
+    Args:
+        names:
+            Full rule names to select.
+        expected:
+            Expected standard output.
+        capsys:
+            Pytest fixture used to capture CLI output.
+
+    """
+    with pytest.raises(SystemExit) as exception:
+        lintkit.cli.main(
+            version="0.0.1",
+            files_default=(),
+            args=["examples", *names],
+        )
+    assert (exception.value.code, capsys.readouterr().out) == (0, expected)
