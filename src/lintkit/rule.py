@@ -73,20 +73,21 @@ class Rule(abc.ABC):
 
     """
 
-    file: pathlib.Path | None = None
+    file: pathlib.Path = None  # pyright: ignore[reportAssignmentType]
     """Path to the loaded file.
 
     Note:
         You may want to use this variable directly within `values` method.
 
     Info:
-        Will be populated by appropriate [`lintkit.loader.Loader`][] subclass,
-        initially `None`. It is of type
+        Will be populated by the appropriate
+        [`lintkit.loader.Loader`][] subclass before rule execution. It is
+        available until the framework resets the rule state. It is of type
         [`pathlib.Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
     """
 
-    _ignore_line: Pattern[str] | None = None
+    _ignore_line: Pattern[str] = None  # pyright: ignore[reportAssignmentType]
     """Regex pattern used to ignore a specific line for this rule.
 
     Note:
@@ -97,19 +98,21 @@ class Rule(abc.ABC):
 
     """
 
-    _lines: list[str] | None = None
+    _lines: list[str] = None  # pyright: ignore[reportAssignmentType]
     """Content split by lines. Used in multiple places, hence cached.
 
     Info:
-        Will be populated by [`lintkit.loader`][], initially `None`.
+        Will be populated by [`lintkit.loader`][] before rule execution and
+        remains available until the framework resets the rule state.
 
     """
 
-    _ignore_spans: list[Span] | None = None
+    _ignore_spans: list[Span] = None  # pyright: ignore[reportAssignmentType]
     """Text spans where the rules should be ignored.
 
     Info:
-        Will be populated by [`lintkit.loader`][], initially `None`.
+        Will be populated by [`lintkit.loader`][] before rule execution and
+        remains available until the framework resets the rule state.
 
     """
 
@@ -239,7 +242,7 @@ class Rule(abc.ABC):
     # Refactoring this method might break pyright
     # (e.g. verifying attributes are set will not be picked up
     # if done in a separate helper method).
-    def ignored(self, value: Value[T]) -> bool:  # noqa: C901
+    def ignored(self, value: Value[T]) -> bool:
         """Check if the value should be ignored by this `rule`.
 
         Info:
@@ -265,17 +268,6 @@ class Rule(abc.ABC):
             for whatever reason.
 
         """
-        # Branch below should never run (all necessary attributes)
-        # would be instantiated before this call.
-        # - Cannot use `any` due to pyright not understanding this check
-        # - Cannot refactor as `pyright` will not catch it
-        if (
-            self._ignore_line is None
-            or self._ignore_spans is None
-            or self._lines is None
-        ):  # pragma: no cover
-            raise e.LintkitInternalError
-
         pointer = value._self_start_line  # noqa: SLF001
         if not pointer:
             if value._self_comment is None:  # noqa: SLF001

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -94,16 +94,15 @@ class Loader(abc.ABC):
 
     """
 
-    file: pathlib.Path | None = None
+    file: pathlib.Path = None  # pyright: ignore[reportAssignmentType]
     """Path to the loaded file.
 
     Note:
         You may want to use this variable directly within `values` method.
 
     Info:
-        Will be populated by appropriate [`lintkit.loader.Loader`][] subclass,
-        initially `None`. It is of type
-        [`pathlib.Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+        Will be populated by the framework before rule execution. It is
+        available until the framework resets the loader state.
 
     """
 
@@ -125,19 +124,21 @@ class Loader(abc.ABC):
 
     """
 
-    _lines: list[str] | None = None
+    _lines: list[str] = None  # pyright: ignore[reportAssignmentType]
     """Content split by lines. Used in multiple places, hence cached.
 
     Info:
-        Will be populated by [`lintkit.loader`][], initially `None`.
+        Will be populated by [`lintkit.loader`][] before rule execution and
+        remains available until the framework resets the loader state.
 
     """
 
-    _ignore_spans: list[Span] | None = None
+    _ignore_spans: list[Span] = None  # pyright: ignore[reportAssignmentType]
     """Text spans where the rules should be ignored.
 
     Info:
-        Will be populated by [`lintkit.loader`][], initially `None`.
+        Will be populated by [`lintkit.loader`][] before rule execution and
+        remains available until the framework resets the loader state.
 
     """
 
@@ -283,7 +284,7 @@ class Loader(abc.ABC):
         """
         # It is enough to compare the files as the full path
         # is unique (while multiple files can have the same content)
-        file_changed = cls.file is None or file != cls.file
+        file_changed = file != cls.file
         if file_changed or not cls.should_cache():
             cls.load(file, content)
         cls.file = file
@@ -295,9 +296,9 @@ class Loader(abc.ABC):
     def _run_reset(cls) -> None:
         """Reset data injected into `rule`s."""
         cls.content = None
-        cls.file = None
-        cls._lines = None
-        cls._ignore_spans = None
+        cls.file = None  # pyright: ignore[reportAttributeAccessIssue]
+        cls._lines = None  # pyright: ignore[reportAttributeAccessIssue]
+        cls._ignore_spans = None  # pyright: ignore[reportAttributeAccessIssue]
         cls.reset()
 
 

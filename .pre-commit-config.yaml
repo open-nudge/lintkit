@@ -34,14 +34,14 @@ repos:
         entry: "conform enforce"
         pass_filenames: false
   - repo: "https://github.com/trufflesecurity/trufflehog"
-    rev: "6f3c981e7b77f235fd2702dd74af25fc4b72bf11"  # frozen: v3.96.0
+    rev: "bcfcf73aaf4759d4dadc2783177c245a02792318"  # frozen: v3.97.0
     hooks:
       - id: "trufflehog"
         alias: "secrets"
         name: "<<<CHECK>>> Secrets"
         verbose: true
   - repo: "https://github.com/google/osv-scanner/"
-    rev: "a258868211a57052da6bd323f758b8388dee02bb"  # frozen: v2.5.0
+    rev: "c84fa4568f2526d0333e9a914ea8a0a5f74ad68b"  # frozen: v2.5.1
     hooks:
       - id: "osv-scanner"
         name: "<<<CHECK>>> OSV Scanner"
@@ -50,7 +50,7 @@ repos:
           - "--licenses=MIT,Apache-2.0,BSD-2-Clause,BSD-3-Clause,Unlicense,Zlib,OFL-1.1,0BSD,PSF-2.0"
           - "./"
   - repo: "https://github.com/errata-ai/vale"
-    rev: "bc78bf3a639f29eef5c6bc3f0680105a82ef46f7"  # frozen: v3.17.1
+    rev: "6c382ecd9f7147f84af5bf1708311bdd10735c5e"  # frozen: v3.18.0
     hooks:
       - id: "vale"
         alias: "setup-natural-language"
@@ -62,7 +62,7 @@ repos:
         stages:
           - "pre-commit"
   - repo: "https://github.com/errata-ai/vale"
-    rev: "bc78bf3a639f29eef5c6bc3f0680105a82ef46f7"  # frozen: v3.17.1
+    rev: "6c382ecd9f7147f84af5bf1708311bdd10735c5e"  # frozen: v3.18.0
     hooks:
       - id: "vale"
         alias: "natural-language"
