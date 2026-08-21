@@ -168,6 +168,16 @@ class Rule(abc.ABC):
         """
         return "No description provided."
 
+    def examples(self) -> list[str] | None:
+        """Return separate usage examples for this rule.
+
+        Each list item is one example and can contain multiple lines.
+
+        Returns:
+            Separate usage examples, or `None` when none are provided.
+        """
+        return None
+
     def __init_subclass__(
         cls,
         *,
