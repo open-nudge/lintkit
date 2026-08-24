@@ -7,121 +7,106 @@
 
 from __future__ import annotations
 
-import sys
+import pathlib
 import typing
 
-from .. import _run, output, registry, settings
+from .. import _run, error, registry, settings
 
 if typing.TYPE_CHECKING:
-    import argparse
-
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Iterator
 
 
 def check(
-    args: argparse.Namespace,
-    include_codes: Iterable[int] | None = None,
-    exclude_codes: Iterable[int] | None = None,
+    files: Iterable[str | pathlib.Path],
+    names: Iterable[str] | None = None,
     end_mode: typing.Literal["first", "all"] = "all",
-) -> typing.NoReturn:
-    """Calculate semantic versioning based on commit messages.
-
-    Outputs version and (optionally) sha of a commit
-    related to this version (the last one in commit chain).
-
-    This output allows to later compare git trees and inferred
-    versions if necessary.
+) -> bool:
+    """Check files with rules selected by full names.
 
     Args:
-        args:
-            Arguments from the CLI.
-        include_codes:
-            Codes to include (likely obtained from a config file or a-like)
-        exclude_codes:
-            Codes to exclude (likely obtained from a config file or a-like).
+        files:
+            Files to check.
+        names:
+            Full, case-sensitive rule names to check. `None` checks all rules.
         end_mode:
-            Whether to stop after the first error or run all rules
-            (likely obtained from a config file or a-like).
+            Whether to stop after the first failure or run all rules.
+
+    Returns:
+        Whether any selected rule failed.
 
     """
-    selected_output = (
-        output.JSON() if args.output == "json" else settings._output()  # noqa: SLF001
-    )
-    with selected_output:
-        sys.exit(
-            int(
-                _run.run(  # pyright: ignore[reportArgumentType]
-                    args.files,
-                    include_codes,
-                    exclude_codes,
-                    end_mode,
-                    output=False,
-                )
-            )
+    include_codes = None if names is None else _codes(names)
+    # To satisfy the linter as it's not smart enough to infer it
+    return (
+        _run.run(
+            (pathlib.Path(file).resolve() for file in files),
+            include_codes,
+            None,
+            end_mode,
+            output=False,
         )
+        is True
+    )
 
 
-def rules(
-    include_codes: Iterable[int] | None = None,
-    exclude_codes: Iterable[int] | None = None,
-) -> typing.NoReturn:
-    """Calculate semantic versioning based on commit messages.
-
-    Outputs version and (optionally) sha of a commit
-    related to this version (the last one in commit chain).
-
-    This output allows to later compare git trees and inferred
-    versions if necessary.
+def rules(names: Iterable[str] | None = None) -> str:
+    """Render selected registered rules.
 
     Args:
-        args:
-            Arguments from the CLI.
-        include_codes:
-            Codes to include (likely obtained from a config file or a-like)
-        exclude_codes:
-            Codes to exclude (likely obtained from a config file or a-like).
+        names:
+            Full, case-sensitive rule names to render. `None` renders all
+            rules in registry order.
+
+    Returns:
+        Rendered rules table.
 
     """
-    enabled = registry._process(  # noqa: SLF001
-        registry.codes(), include_codes, exclude_codes
-    )
-    header = ("Name", "Enabled", "Description")
-
-    rows: list[tuple[str, str | bool, str]] = [header]
+    registered = {rule.code: rule for rule in registry.rules()}
+    selected = registry.codes() if names is None else _codes(names)
+    header = ("Name", "Description")
+    rows: list[tuple[str, str]] = [header]
     rows.extend(
-        (
-            f"{settings.name}{rule.code}",
-            rule.code in enabled,
-            rule.description(),
-        )
-        for rule in registry.rules()
+        (f"{settings._name()}{code}", registered[code].description())  # noqa: SLF001
+        for code in selected
     )
 
     maximum_widths = tuple(
         max(len(str(row[i])) for row in rows) for i in range(len(header))
     )
 
-    print(_format_row(header, maximum_widths))  # noqa: T201
-    print("-+-".join("-" * w for w in maximum_widths))  # noqa: T201
+    rendered = [
+        " | ".join(
+            column.ljust(maximum_widths[index])
+            for index, column in enumerate(header)
+        )
+    ]
+    rendered.append("-+-".join("-" * width for width in maximum_widths))
+    rendered.extend(
+        " | ".join(
+            column.ljust(maximum_widths[index])
+            for index, column in enumerate(row)
+        )
+        for row in rows[1:]
+    )
+    return "\n".join(rendered)
 
-    # Skip header
-    for row in rows[1:]:
-        print(_format_row(row, maximum_widths))  # noqa: T201
 
-    sys.exit(0)
-
-
-def examples(names: Iterable[str]) -> typing.NoReturn:
+def examples(names: Iterable[str] | None = None) -> str:
     """Display usage examples for selected rules.
 
     Args:
         names:
-            Full rule names to display. An empty iterable selects all rules.
+            Full, case-sensitive rule names to display. `None` selects
+            registry order.
+
+    Returns:
+        Rendered examples in selection order.
 
     """
     name = settings._name()  # noqa: SLF001
-    rules = {f"{name}{rule.code}": rule for rule in registry.rules()}
-    selected = rules.values() if not names else (rules[name] for name in names)
+    rules = {rule.code: rule for rule in registry.rules()}
+    selected_codes = registry.codes() if names is None else _codes(names)
+    selected = (rules[code] for code in selected_codes)
     groups: list[str] = []
     for rule in selected:
         rule_examples = rule.examples()
@@ -130,27 +115,27 @@ def examples(names: Iterable[str]) -> typing.NoReturn:
                 f"{name}{rule.code}:\n\n" + "\n\n".join(rule_examples)
             )
 
-    if groups:
-        print("\n\n".join(groups))  # noqa: T201
-    sys.exit(0)
+    return "\n\n".join(groups)
 
 
-def _format_row(
-    row: tuple[str, bool | str, str], maximum_widths: tuple[int, ...]
-) -> str:
-    """Format row for display.
+def _codes(names: Iterable[str]) -> Iterator[int]:
+    """Convert full rule names to integer codes.
 
     Args:
-        row:
-            Row to format
-            (contains rule name, whether it's enabled and description).
-        maximum_widths:
-            Maximum width of each name, enablement and description.
+        names:
+            Full, case-sensitive rule names.
 
-    Returns:
-        Formatted row.
+    Raises:
+        lintkit.error.RuleNameError:
+            If a name is not registered.
+
+    Yields:
+        Codes in caller order.
 
     """
-    return " | ".join(
-        str(col).ljust(maximum_widths[i]) for i, col in enumerate(row)
-    )
+    prefix = settings._name()  # noqa: SLF001
+    registered = {f"{prefix}{code}": code for code in registry.codes()}
+    for name in names:
+        if name not in registered:  # pragma: no cover
+            raise error.RuleNameError(name)
+        yield registered[name]

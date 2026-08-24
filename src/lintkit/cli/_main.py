@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import typing
 
-from .. import error
+from .. import error, output, settings
 from . import _parser, _subcommand
 
 if typing.TYPE_CHECKING:
@@ -18,13 +18,12 @@ if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
 
-def main(  # noqa: PLR0913
+def main(  # noqa: C901, PLR0913
     *,
     version: str,
     files_default: Iterable[str | pathlib.Path],
     files_help: str | None = None,
-    include_codes: Iterable[int] | None = None,
-    exclude_codes: Iterable[int] | None = None,
+    names: Iterable[str] | None = None,
     end_mode: typing.Literal["first", "all"] = "all",
     pass_files: bool = True,
     args: list[str] | None = None,
@@ -62,10 +61,9 @@ def main(  # noqa: PLR0913
         files_help:
             CLI help message about files. It allows you to have a more accurate
             description of the defaults (e.g. only Python files, see example).
-        include_codes:
-            Codes to include (likely obtained from a config file or a-like)
-        exclude_codes:
-            Codes to exclude (likely obtained from a config file or a-like).
+        names:
+            Full, case-sensitive rule names selected by default. `None`
+            selects all rules.
         end_mode:
             Whether to stop after the first error or run all rules
             (likely obtained from a config file or a-like).
@@ -84,24 +82,136 @@ def main(  # noqa: PLR0913
             Keyword arguments to pass __to the root parser__
             (`argparse.ArgumentParser`).
 
+    Raises:
+        SystemExit:
+            After a command finishes or argument parsing fails.
+        lintkit.error.LintkitInternalError:
+            If argument parsing returns an unknown subcommand.
+
     """
-    parsed_args = _parser.root(
+    parser = _parser.root(
         version,
         files_default,
         files_help,
         pass_files,
         **kwargs,
-    ).parse_args(args)
+    )
+    parsed_args = parser.parse_args(args)
 
-    if not pass_files:
+    if not pass_files:  # pragma: no cover
         parsed_args.files = files_default
 
+    if parsed_args.subcommand == "mcp":
+        _mcp(parsed_args, files_default)
+        return
+
+    selected_names = names if parsed_args.names is None else parsed_args.names
     if parsed_args.subcommand == "check":
-        _subcommand.check(parsed_args, include_codes, exclude_codes, end_mode)
+        selected_end = (
+            end_mode if parsed_args.end_mode is None else parsed_args.end_mode
+        )
+        _check(
+            parsed_args.files,
+            selected_names,
+            selected_end,
+            parsed_args.output,
+        )
     if parsed_args.subcommand == "rules":
-        _subcommand.rules(include_codes, exclude_codes)
+        print(_subcommand.rules(selected_names))  # noqa: T201
+        raise SystemExit(0)
     if parsed_args.subcommand == "examples":
-        _subcommand.examples(parsed_args.names)
+        rendered = _subcommand.examples(selected_names)
+        if rendered:  # pragma: no branch
+            print(rendered)  # noqa: T201
+
+        raise SystemExit(0)
 
     # Cannot be anything else, but left to make pyright feel at peace
     raise error.LintkitInternalError  # pragma: no cover
+
+
+def _check(
+    files: Iterable[str | pathlib.Path],
+    names: Iterable[str] | None,
+    end_mode: typing.Literal["first", "all"],
+    output_name: typing.Literal["cli", "json"],
+) -> typing.NoReturn:
+    """Run the CLI-only check output and exit handling.
+
+    Args:
+        files:
+            Files to check.
+        names:
+            Full rule names to check, or all rules when `None`.
+        end_mode:
+            Whether to stop after the first failure or run all rules.
+        output_name:
+            CLI output format.
+
+    Raises:
+        SystemExit:
+            With status one when a selected rule fails, otherwise zero.
+
+    """
+    selected_output = (
+        output.JSON() if output_name == "json" else settings._output()  # noqa: SLF001
+    )
+    with selected_output:
+        failed = _subcommand.check(files, names, end_mode)
+    raise SystemExit(int(failed))
+
+
+def _mcp(
+    parsed_args: typing.Any,
+    files_default: Iterable[str | pathlib.Path],
+) -> None:
+    """Start the selected MCP transport.
+
+    Args:
+        parsed_args:
+            Parsed MCP command arguments.
+        files_default:
+            Default files configured by the linter.
+
+    """
+    from .. import mcp  # noqa: PLC0415
+
+    run_kwargs: dict[str, typing.Any] = {
+        "transport": parsed_args.transport,
+        "show_banner": False,
+    }
+    if parsed_args.transport == "http":
+        _http_kwargs(run_kwargs, parsed_args)
+    mcp.server(
+        parsed_args.enable,
+        parsed_args.disable,
+        files_default=files_default,
+        name=parsed_args.name,
+    ).run(**run_kwargs)
+
+
+def _http_kwargs(
+    run_kwargs: dict[str, typing.Any], parsed_args: typing.Any
+) -> None:
+    """Add only explicit HTTP settings to FastMCP run options.
+
+    Args:
+        run_kwargs:
+            Run options to update.
+        parsed_args:
+            Parsed MCP command arguments.
+
+    """
+    mappings = {
+        "host": parsed_args.host,
+        "port": parsed_args.port,
+        "path": parsed_args.path,
+        "host_origin_protection": parsed_args.host_origin_protection,
+        "allowed_hosts": parsed_args.allowed_host,
+        "allowed_origins": parsed_args.allowed_origin,
+    }
+    run_kwargs.update(
+        (key, value) for key, value in mappings.items() if value is not None
+    )
+    if parsed_args.stateful:  # pragma: no branch
+        run_kwargs["stateless"] = False

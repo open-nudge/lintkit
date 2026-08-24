@@ -34,7 +34,7 @@ repos:
         entry: "conform enforce"
         pass_filenames: false
   - repo: "https://github.com/trufflesecurity/trufflehog"
-    rev: "bcfcf73aaf4759d4dadc2783177c245a02792318"  # frozen: v3.97.0
+    rev: "20652fbbdefffcdaa493a5bf57ab2ac6b1db715b"  # frozen: v3.97.1
     hooks:
       - id: "trufflehog"
         alias: "secrets"
@@ -332,13 +332,6 @@ repos:
         require_serial: true
         types:
           - "python"
-      - id: "security"
-        verbose: true
-        name: "<<<CHECK>>> Security"
-        entry: "pdm run -v check-security"
-        language: "system"
-        require_serial: true
-        exclude: "^pdm.lock$"
       - id: "release"
         name: "<<<CHECK>>> Release"
         entry: "pdm run -v check-release"

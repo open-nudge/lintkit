@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""Parser of the `comver` CLI."""
+"""Parser of the lintkit CLI."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import pathlib
 import textwrap
 import typing
 
-from .. import registry, settings
+from .. import available, registry, settings
 
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -52,7 +52,7 @@ def root(
         The argument parser configured with all CLI commands.
 
     """
-    parser = argparse.ArgumentParser(**kwargs)
+    parser = _RootParser(**kwargs)
 
     _ = parser.add_argument(
         "--version",
@@ -68,6 +68,8 @@ def root(
     _check(subparsers, files_default, files_help, pass_files)
     _rules(subparsers)
     _examples(subparsers)
+    if available.MCP:
+        _mcp(subparsers)
 
     return parser
 
@@ -113,10 +115,10 @@ def _check(
         """),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    if help_ is None:
+    if help_ is None:  # pragma: no branch
         help_ = "Files to process (default: all files in current working directory, recursively)"
 
-    if pass_files:
+    if pass_files:  # pragma: no branch
         _ = parser.add_argument(
             "files",
             nargs="*",
@@ -125,54 +127,16 @@ def _check(
             help=help_,
         )
 
-    _ = parser.add_argument(
-        "--exclude_codes",
-        nargs="*",
-        type=int,
-        default=None,
-        help=textwrap.dedent("""\
-        Rule numbers to exclude (default: do not exclude any rule).
-
-        Example:
-
-            > %(prog)s --exclude_codes 1 2 3
-
-        NOTE:
-
-            - Arguments should be specified as integers
-            - Configuration values (e.g. from pyproject.toml) take precedence
-            - Exclusions take precedence over inclusions
-        """),
-    )
-    _ = parser.add_argument(
-        "--include_codes",
-        nargs="*",
-        type=int,
-        default=None,
-        help=textwrap.dedent("""\
-        Rule numbers to exclude (default: do not exclude any rule).
-
-        Example:
-
-            # Only 3 will be included!
-            > %(prog)s --include_codes 2 3 --exclude_codes 3
-
-        NOTE:
-
-            - Arguments should be specified as integers
-            - Configuration values (e.g. from pyproject.toml) take precedence
-            - Exclusions take precedence over inclusions
-        """),
-    )
+    _selectors(parser)  # pyright: ignore[reportUnknownArgumentType]
 
     _ = parser.add_argument(
         "--end_mode",
         choices=["all", "first"],
-        default="all",
+        default=None,
         help=textwrap.dedent("""\
         If 'first', end after the first error, if 'all' check everything.
 
-        Default: 'all'
+        Default: the linter creator's configured mode.
         """),
     )
     _ = parser.add_argument(
@@ -191,11 +155,12 @@ def _rules(subparsers) -> None:  # noqa: ANN001  # pyright: ignore [reportUnknow
             Object where this subparser will be registered.
 
     """
-    _ = subparsers.add_parser(
+    parser = subparsers.add_parser(
         "rules",
-        description="Display available rules, their status and description.",
+        description="Display selected rules and their descriptions.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    _selectors(parser)  # pyright: ignore[reportUnknownArgumentType]
 
 
 def _examples(subparsers) -> None:  # noqa: ANN001  # pyright: ignore [reportUnknownParameterType, reportMissingParameterType]
@@ -206,24 +171,133 @@ def _examples(subparsers) -> None:  # noqa: ANN001  # pyright: ignore [reportUnk
             Object where this subparser will be registered.
 
     """
-    summary_limit = 5
-
     parser = subparsers.add_parser(
         "examples",
-        description="Display usage examples for available rules.",
+        description="Display usage examples for selected rules.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    names = tuple(f"{settings._name()}{code}" for code in registry.codes())  # noqa: SLF001
-    summary = (
-        names
-        if len(names) <= summary_limit
-        else (*names[:2], "...", *names[-2:])
+    _selectors(parser)  # pyright: ignore[reportUnknownArgumentType]
+
+
+def _mcp(subparsers) -> None:  # noqa: ANN001  # pyright: ignore [reportUnknownParameterType, reportMissingParameterType]
+    """Create the optional `mcp` subcommand parser.
+
+    Args:
+        subparsers:
+            Object where this subparser will be registered.
+
+    """
+    parser = subparsers.add_parser(
+        "mcp",
+        description="Serve lintkit commands over MCP using stdio or HTTP.",
+    )
+    choices = ("check", "rules", "examples")
+    _ = parser.add_argument(
+        "--enable",
+        nargs="*",
+        choices=choices,
+        default=None,
+        help="Expose only these tools.",
     )
     _ = parser.add_argument(
-        "names",
+        "--disable",
+        nargs="*",
+        choices=choices,
+        default=None,
+        help="Hide these tools after applying --enable.",
+    )
+    _ = parser.add_argument(
+        "--name",
+        default=settings._name(),  # noqa: SLF001
+        help="Server name (default: linter name).",
+    )
+    _ = parser.add_argument(
+        "--transport",
+        choices=("stdio", "http"),
+        default="stdio",
+        help="Transport to use (default: stdio).",
+    )
+    _ = parser.add_argument("--host", help="HTTP bind host.")
+    _ = parser.add_argument("--port", type=int, help="HTTP bind port.")
+    _ = parser.add_argument("--path", help="HTTP endpoint path.")
+    _ = parser.add_argument(
+        "--stateful",
+        action="store_true",
+        help="Use legacy stateful HTTP operation.",
+    )
+    _ = parser.add_argument(
+        "--host-origin-protection",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Enable or disable HTTP host and origin protection.",
+    )
+    _ = parser.add_argument(
+        "--allowed-host",
+        action="append",
+        help="Allow an HTTP Host value; repeat to add values.",
+    )
+    _ = parser.add_argument(
+        "--allowed-origin",
+        action="append",
+        help="Allow an HTTP Origin value; repeat to add values.",
+    )
+
+
+def _selectors(parser: argparse.ArgumentParser) -> None:
+    """Add common full-name rule selectors.
+
+    Args:
+        parser:
+            Subcommand parser to update.
+
+    """
+    names = tuple(f"{settings._name()}{code}" for code in registry.codes())  # noqa: SLF001
+    _ = parser.add_argument(
+        "--names",
         nargs="*",
         choices=names,
+        default=None,
         metavar="NAME",
-        help=f"Rule names to display ({', '.join(summary)}).",
+        help="Exact case-sensitive full rule names (default: all rules).",
     )
+
+
+class _RootParser(argparse.ArgumentParser):
+    """Root parser that validates cross-option MCP constraints."""
+
+    @typing.override
+    def parse_args(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self,
+        args: Iterable[str] | None = None,
+        namespace: typing.Any = None,
+    ) -> argparse.Namespace:
+        """Parse arguments and reject HTTP options under stdio.
+
+        Args:
+            args:
+                Arguments to parse, or process arguments when `None`.
+            namespace:
+                Namespace to populate, when supplied.
+
+        Returns:
+            Validated parsed arguments.
+
+        """
+        parsed: argparse.Namespace = super().parse_args(args, namespace)
+        values = vars(parsed)
+        if values.get("subcommand") != "mcp" or values["transport"] == "http":
+            return parsed
+        http_options = (
+            values["host"],
+            values["port"],
+            values["path"],
+            values["host_origin_protection"],
+            values["allowed_host"],
+            values["allowed_origin"],
+        )
+        if values["stateful"] or any(
+            value is not None for value in http_options
+        ):
+            self.error("HTTP options require --transport http")
+        return parsed

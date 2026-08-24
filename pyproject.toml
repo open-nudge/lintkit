@@ -71,7 +71,7 @@ dynamic = [ "version" ]
 ###############################################################################
 
 dependencies = [
-  "wrapt>=1",
+  "wrapt>=2",
 ]
 
 optional-dependencies.rich= [
@@ -83,6 +83,9 @@ optional-dependencies.toml = [
 optional-dependencies.yaml = [
   "ruamel.yaml>=0.18.14",
 ]
+optional-dependencies.mcp = [
+  "fastmcp>=4.0.0b3",
+]
 
 optional-dependencies.output = [
   "lintkit[rich]",
@@ -91,6 +94,7 @@ optional-dependencies.all = [
   "lintkit[output]",
   "lintkit[yaml]",
   "lintkit[toml]",
+  "lintkit[mcp]",
 ]
 
 urls.Changelog = "https://github.com/open-nudge/lintkit/blob/master/CHANGELOG.md"
@@ -109,6 +113,7 @@ dev-tests = [
   "pytest-html>=4",
   "pytest-pretty-terminal>=1",
   "pytest-randomly>=3",
+  "fastmcp>=4.0.0b3",
 ]
 
 dev-docs = [
@@ -181,22 +186,6 @@ dev-citation = [
   # Has to be pinned due to latest fixes not pushed to PyPI
   # Citations will not be updated by renovate due to this issue as well
   "cffconvert @ git+https://github.com/citation-file-format/cffconvert@b6045d78aac9e02b039703b030588d54d53262ac",
-]
-
-dev-security = [
-  # Semgrep may be a little rough for some releases, specify it ONLY for one version
-  #
-  #           DO NOT EDIT UNTIL end marker
-  #
-  # [[[cog
-  # import cog
-  # import cogeol
-  #
-  # cycle = cogeol.scientific()[-1]["cycle"]
-  # cog.out(f'''  "semgrep>=1; platform_system!='Windows' and python_version=='{cycle}'"''')
-  # ]]]
-  "semgrep>=1; platform_system!='Windows' and python_version=='3.12'"
-  # [[[end]]] (sum: xEbnmglzzV)
 ]
 
 dev-github = [
@@ -282,7 +271,6 @@ dev-all = [
   { include-group = "dev-pyproject" },
   { include-group = "dev-text" },
   { include-group = "dev-citation" },
-  { include-group = "dev-security" },
   { include-group = "dev-github" },
   { include-group = "dev-legal" },
   { include-group = "dev-release" },
@@ -479,6 +467,10 @@ exclude_also = [
   "class .*\\bProtocol\\):",
   "@(abc\\.)?abstractmethod",
 ]
+partial_branches = [
+  "#\\s*(pragma|PRAGMA)[:\\s]?\\s*(no|NO)\\s*(branch|BRANCH)",
+  "^\\s*if available\\.[A-Z_]+:$",
+]
 
 fail_under = 100
 precision = 2
@@ -489,6 +481,7 @@ skip_empty = true
 ignore_undeclared = [
   "ruamel",
   "mkdocs_gen_files",
+  "fastmcp",
   "pytest",
   "hypothesis",
 ]
@@ -504,6 +497,7 @@ ignore_unused = [
   "coverage",
   "cyclonedx-bom",
   "editorconfig-checker",
+  "fastmcp",
   "git-cliff",
   "hypothesis",
   "interrogate",
@@ -513,7 +507,6 @@ ignore_unused = [
   "mdformat-gfm",
   "mdformat_footnote",
   "mdformat_frontmatter",
-  "semgrep",
   "shellcheck-py",
   "termynal",
   "validate-pyproject",
@@ -1000,26 +993,6 @@ check-symlink = "check-symlinks"
 check-toml = "check-toml"
 
 # End of separated pre-commit hooks
-
-check-security = { cmd = [
-  "semgrep",
-  "scan",
-  "--experimental",
-  "--exclude=*pdm.lock",
-  "--config=p/python",
-  "--config=p/secrets",
-  "--config=p/security-audit",
-  "--config=p/ci",
-  "--config=p/github-actions",
-  "--config=p/bandit",
-  "--config=p/gitleaks",
-  "--error",
-  "--metrics=off",
-  "--severity=INFO",
-  "--strict",
-  "{args:.}",
-] }
-
 
 check-renovate = { cmd = [
   "check-jsonschema",

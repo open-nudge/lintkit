@@ -121,6 +121,8 @@ def _add(rule: type[Rule], code: int) -> None:  # pyright: ignore [reportUnusedF
         and `code` is set there.
 
     Raises:
+        lintkit.error.NotSubclassError:
+            If `rule` does not inherit from both `Rule` and `Loader`.
         lintkit.error.CodeNegativeError:
             If `code` is negative.
         lintkit.error.CodeExistsError:

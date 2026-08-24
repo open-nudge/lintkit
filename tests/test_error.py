@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -30,7 +30,9 @@ def test_name_missing(request: pytest.FixtureRequest) -> None:
     """Ensure an error occurs when `lintkit.settings.name` is not set.
 
     Args:
-        request: Fixture request to get the path of the test file.
+        request:
+            Fixture request used to get the path of the test file.
+
     """
     name = lintkit.settings.name
     lintkit.settings.name = None
@@ -98,7 +100,8 @@ def test_wrong_ignore_range(request: pytest.FixtureRequest) -> None:
     """Verify error raised noqa-start has no noqa ending string.
 
     Args:
-        request: Fixture request to get the path of the test file.
+        request:
+            Fixture request used to get the path of the test file.
 
     """
     with pytest.raises(lintkit.error.IgnoreRangeError):

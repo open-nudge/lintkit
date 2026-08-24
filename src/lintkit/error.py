@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -84,6 +84,33 @@ class LintkitError(Exception):
 
 class LintkitInternalError(LintkitError):
     """Internal `lintkit` error which should never be raised."""
+
+
+@typing.final
+class RuleNameError(LintkitError):
+    """Raised when a command receives an unknown full rule name."""
+
+    def __init__(self, name: str) -> None:  # pragma: no cover
+        """Initialize the error.
+
+        Args:
+            name:
+                Unknown full rule name.
+
+        """
+        self.name = name
+        super().__init__(f"Unknown rule name: '{name}'.")
+
+
+@typing.final
+class RegistryEmptyError(LintkitError):
+    """Raised when an MCP server is created without registered rules."""
+
+    def __init__(self) -> None:
+        """Initialize the error with rule import guidance."""
+        super().__init__(
+            "No rules registered. Import project rules before lintkit.mcp.server()."
+        )
 
 
 @typing.final
