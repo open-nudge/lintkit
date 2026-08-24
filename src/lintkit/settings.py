@@ -162,7 +162,7 @@ def _name() -> str:  # pyright: ignore[reportUnusedFunction]
         The linter name
 
     Raises:
-        LinterNameMissingError: If the linter name is not set
+        lintkit.error.NameMissingError: If the linter name is not set.
     """
     if name is None:
         raise error.NameMissingError

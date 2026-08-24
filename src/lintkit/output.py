@@ -128,9 +128,9 @@ class Output(abc.ABC):
 
     def __exit__(
         self,
-        _: type[BaseException] | None,
-        __: BaseException | None,
-        ___: types.TracebackType | None,
+        exception_type: type[BaseException] | None,
+        exception: BaseException | None,
+        traceback: types.TracebackType | None,
     ) -> typing.Literal[False]:
         """Finish the outermost session and restore the previous output.
 
@@ -154,7 +154,7 @@ class Output(abc.ABC):
 
         try:
             settings.output = self
-            self.finalize()
+            _ = self.finalize()
         finally:
             settings.output = previous
         return False
@@ -194,13 +194,16 @@ class Output(abc.ABC):
         """
         raise NotImplementedError
 
-    def finalize(self) -> None:
+    def finalize(self) -> str | None:
         """Finalize and emit any accumulated output.
 
         Pass-through by default.
 
+        Returns:
+            Optional serialized output produced during finalization.
+
         """
-        return
+        return None
 
 
 class Stdout(Output):
@@ -243,11 +246,63 @@ class Stdout(Output):
                 End column number of the violation, if available (unused).
 
         """
-        line = start_line if start_line is not None else "-"
-        column = start_column if start_column is not None else "-"
-        print(  # noqa: T201
-            f"{file or 'ALL'}:{line}:{column}: {name}{code}: {message}",
+        print(_plain(name, code, message, file, start_line, start_column))  # noqa: T201
+
+
+class Accumulator(Output):
+    """Accumulate plain linter messages without printing them."""
+
+    def __init__(self) -> None:
+        """Initialize an empty message collection."""
+        super().__init__()
+        self._messages: list[str] = []
+
+    @typing.override
+    def __call__(
+        self,
+        name: str,
+        code: int,
+        message: str,
+        file: pathlib.Path | None = None,
+        start_line: int | None = None,
+        start_column: int | None = None,
+        end_line: int | None = None,
+        end_column: int | None = None,
+    ) -> None:
+        """Accumulate one plain linter message.
+
+        Args:
+            name:
+                Name of the linter.
+            code:
+                Numerical rule code.
+            message:
+                Rule violation message.
+            file:
+                File where the violation occurred, if available.
+            start_line:
+                Start line of the violation, if available.
+            start_column:
+                Start column of the violation, if available.
+            end_line:
+                End line of the violation, if available (unused).
+            end_column:
+                End column of the violation, if available (unused).
+
+        """
+        self._messages.append(
+            _plain(name, code, message, file, start_line, start_column)
         )
+
+    @typing.override
+    def finalize(self) -> str:
+        """Return all accumulated messages separated by newlines.
+
+        Returns:
+            Plain diagnostics without a trailing newline.
+
+        """
+        return "\n".join(self._messages)
 
 
 if available.RICH:
@@ -308,9 +363,6 @@ if available.RICH:
                 f"[bold]{file or 'ALL'}[/bold]:{line}[cyan]:[/cyan]{column}: [bold red]{name}{code}[/bold red] {message}",  # noqa: E501
             )
 
-else:  # pragma: no cover
-    pass
-
 
 class JSON(Output):
     """Accumulate violations and output one valid JSON array."""
@@ -366,6 +418,39 @@ class JSON(Output):
     def finalize(self) -> None:
         """Print all accumulated records as one pretty JSON array."""
         print(json.dumps(self._results, indent=2))  # noqa: T201
+
+
+def _plain(  # noqa: PLR0913, PLR0917
+    name: str,
+    code: int,
+    message: str,
+    file: pathlib.Path | None,
+    start_line: int | None,
+    start_column: int | None,
+) -> str:
+    """Format one plain diagnostic line.
+
+    Args:
+        name:
+            Name of the linter.
+        code:
+            Numerical rule code.
+        message:
+            Rule violation message.
+        file:
+            File where the violation occurred, if available.
+        start_line:
+            Start line of the violation, if available.
+        start_column:
+            Start column of the violation, if available.
+
+    Returns:
+        One formatted diagnostic line.
+
+    """
+    line = start_line if start_line is not None else "-"
+    column = start_column if start_column is not None else "-"
+    return f"{file or 'ALL'}:{line}:{column}: {name}{code}: {message}"
 
 
 # Used internally by `settings` when finding the appropriate output venue

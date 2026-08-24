@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 SPDX-FileContributor: szymonmaszke <github@maszke.co>
 
 SPDX-License-Identifier: Apache-2.0
@@ -18,6 +18,7 @@ in the following order:
     (or other tool); __continuation of basic tutorial__
 - [Advanced linter for Python code](advanced.md)
 - [File linters](file.md); __continuation of advanced tutorial__
+- [MCP server](mcp.md) for exposing checks, rules, and examples as tools
 
 Afterwards you might want to check [API Reference][lintkit].
 You might also be interested in

@@ -224,6 +224,8 @@ class Rule(abc.ABC):
             ```
 
         Raises:
+            lintkit.error.NotSubclassError:
+                If the class does not also inherit from a loader.
             lintkit.error.CodeNegativeError:
                 If `code` is negative.
             lintkit.error.CodeExistsError:
@@ -233,7 +235,9 @@ class Rule(abc.ABC):
             code:
                 Code to assign for the rule.
 
-        """
+        """  # noqa: DOC502, RUF100
+        # DOC502: `registry._add` raises the documented registration errors;
+        # pydoclint does not trace exceptions through function calls.
         # Code actually defines the rule
         if code is not None:
             registry._add(cls, code)  # noqa: SLF001
@@ -244,6 +248,10 @@ class Rule(abc.ABC):
         Warning:
             `__init__` is called internally by the framework,
             linter/rule creators __should not__ use it directly.
+
+        Raises:
+            lintkit.error.CodeMissingError:
+                If the class was instantiated without a rule code.
 
         """
         if self.code is None:
@@ -329,6 +337,11 @@ class Rule(abc.ABC):
 
         Returns:
             bool: Always True as the error was raised
+
+        Raises:
+            lintkit.error.CodeMissingError:
+                If the rule has no code.
+
         """
         printer = settings._output()  # noqa: SLF001
         if self.code is None:  # pragma: no cover
@@ -517,7 +530,7 @@ class _NotNode(Rule, abc.ABC):
             based on the aggregated number of failures
             (see `[`lintkit.rule.File.finalize`][]`).
 
-        Returns:
+        Yields:
             Always `False` (no matter the `check` output) to make the
             interface compatible with [`lintkit.rule.Node`][]
 

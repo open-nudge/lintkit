@@ -217,6 +217,14 @@ class Loader(abc.ABC):
         Args:
             key:
                 The key to retrieve the value for.
+
+        Returns:
+            The cached value stored under `key`.
+
+        Raises:
+            KeyError:
+                If the loader has no cached value under `key`.
+
         """
         return Loader._loader_data[cls._loader_index][key]
 
@@ -370,7 +378,10 @@ class Python(Loader):
 
         Raises:
             SyntaxError: If the content is not valid Python code.
-        """
+
+        """  # noqa: DOC502, RUF100
+        # DOC502: `ast.parse` raises the documented `SyntaxError`; pydoclint
+        # only recognizes exceptions raised directly in this function.
         ast_ = ast.parse(content)
         nodes_direct = list(ast.iter_child_nodes(ast_))
         nodes_recursive = list(ast.walk(ast_))
@@ -578,8 +589,6 @@ if available.TOML:
             """
             return parse(content)
 
-else:  # pragma: no cover
-    pass
 
 if available.YAML:
     import ruamel.yaml
@@ -592,8 +601,11 @@ if available.YAML:
 
         Args:
             func:
-                The function to be decorated, (some `construct_*` method
-                of the `ValueConstructor`).
+                The central `construct_object` method of the
+                `ValueConstructor`.
+
+        Returns:
+            A function that wraps the original return value in `Value`.
 
         """
 
@@ -617,18 +629,28 @@ if available.YAML:
         return wrapper
 
     class _ValueConstructor(ruamel.yaml.constructor.RoundTripConstructor):  # pyright: ignore[reportUntypedBaseClass, reportAttributeAccessIssue]
-        """Custom constructor for YAML that wraps values in `Value`."""
+        """Custom constructor that wraps semantic YAML objects in `Value`."""
 
-    # Wrap all `construct_*` methods of `_ValueConstructor`
-    # with the decorator. Other options do not seem to work reliably.
-    for attribute in dir(_ValueConstructor):
-        if attribute.startswith("construct_"):
-            function = getattr(_ValueConstructor, attribute)
-            setattr(
-                _ValueConstructor,
-                attribute,
-                _decorator(function),
-            )
+        @_decorator
+        def construct_object(
+            self,
+            node: typing.Any,
+            deep: bool = False,  # noqa: FBT001, FBT002
+        ) -> typing.Any:
+            """Construct and wrap one semantic YAML object.
+
+            Args:
+                node:
+                    The YAML node to construct.
+                deep:
+                    Whether to construct nested objects deeply.
+
+            Returns:
+                The constructed YAML object. The decorator wraps it in
+                [`lintkit.Value`][].
+
+            """
+            return super().construct_object(node, deep=deep)
 
     class YAML(_ConfigLoader):
         """Loader for `YAML` files.
@@ -678,9 +700,6 @@ if available.YAML:
             """
             return YAML._ruamel_yaml.load(content)
 
-else:  # pragma: no cover
-    pass
-
 
 class File(Loader):
     """Load whole `file`.
@@ -729,7 +748,12 @@ class File(Loader):
 
     @classmethod
     def should_cache(cls) -> bool:  # pyright: ignore [reportImplicitOverride]
-        """Never cache this loader."""
+        """Never cache this loader.
+
+        Returns:
+            `False`.
+
+        """
         return False
 
     @classmethod

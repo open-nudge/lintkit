@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -57,4 +57,10 @@ TOML: bool = _modules_exist("tomlkit")
 """`Bool` indicating [tomlkit](https://tomlkit.readthedocs.io) availability.
 
 Used to parse `TOML` and create rules for it.
+"""
+
+MCP: bool = _modules_exist("fastmcp")
+"""`Bool` indicating [FastMCP](https://gofastmcp.com) availability.
+
+Used to expose the optional MCP API and CLI command.
 """

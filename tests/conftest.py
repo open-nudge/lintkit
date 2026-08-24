@@ -210,6 +210,10 @@ class TestNotNode(Message, Python, Contains):
         Args:
             node: Node to process.
 
+        Returns:
+            A nested test mapping for the targeted dictionary, otherwise an
+            empty mapping.
+
         """
         # Additional checks should be here, but for this test cases
         # based on /data folder the line below will __always__ have values

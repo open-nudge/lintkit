@@ -63,8 +63,7 @@ add the following section to our linter:
 ```toml
 [tool.mylinter]
 
-include_codes = [2, 3, 4]
-exclude_codes = [1, 2, 3]
+names = ["MYLINTER2", "MYLINTER3", "MYLINTER4"]
 
 max_name_lenth = 5
 ```

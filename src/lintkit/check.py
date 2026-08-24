@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -139,7 +139,7 @@ class Regex(Check, abc.ABC):
             value.__wrapped__ is None
             or re.search(
                 self.regex(),
-                value.__wrapped__,  # pyright: ignore[reportUnknownArgumentType]
+                value.__wrapped__,
                 flags=self.regex_flags(),
             )
             is not None

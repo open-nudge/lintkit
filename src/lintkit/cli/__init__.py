@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -24,5 +24,6 @@ Example:
 from __future__ import annotations
 
 from ._main import main
+from ._subcommand import check, examples, rules
 
-__all__ = ["main"]
+__all__ = ["check", "examples", "main", "rules"]

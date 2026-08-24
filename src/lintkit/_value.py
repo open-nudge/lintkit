@@ -36,7 +36,7 @@ if typing.TYPE_CHECKING:
 T = typing.TypeVar("T")
 
 
-class Value(wrapt.ObjectProxy, typing.Generic[T]):  # pyright: ignore [reportUntypedBaseClass]
+class Value(wrapt.BaseObjectProxy[T], typing.Generic[T]):
     """`Value` used by rules for verification.
 
     Note:
@@ -109,6 +109,25 @@ class Value(wrapt.ObjectProxy, typing.Generic[T]):  # pyright: ignore [reportUnt
         comment: str | None = None,
         **kwargs: typing.Any,
     ) -> None:
+        """Wrap a value and its optional source metadata.
+
+        Args:
+            value:
+                Value exposed through the proxy.
+            start_line:
+                Source start line, if available.
+            start_column:
+                Source start column, if available.
+            end_line:
+                Source end line, if available.
+            end_column:
+                Source end column, if available.
+            comment:
+                Source comment associated with the value, if available.
+            **kwargs:
+                Additional format-specific metadata.
+
+        """
         super().__init__(value)
 
         if start_line is None:
@@ -131,7 +150,7 @@ class Value(wrapt.ObjectProxy, typing.Generic[T]):  # pyright: ignore [reportUnt
     def from_python(value: T, node: ast.AST) -> Value[T]:
         """Create a `Value` from Python's `ast.AST` node.
 
-        Arguments:
+        Args:
             value:
                 Some `Python` plain object.
             node:
@@ -163,7 +182,7 @@ class Value(wrapt.ObjectProxy, typing.Generic[T]):  # pyright: ignore [reportUnt
             are currently ignored and __only file exclusions__
             are available.
 
-        Arguments:
+        Args:
             value:
                 Some object, usually plain `Python` after parsing
                 `JSON` via
@@ -193,6 +212,10 @@ class Value(wrapt.ObjectProxy, typing.Generic[T]):  # pyright: ignore [reportUnt
                 propagates `comment` field to other elements of the
                 system which allows it to be used for line ignoring.
 
+            Args:
+                item:
+                    `tomlkit` item to unwrap and annotate.
+
             Returns:
                 `tomlkit.Item` represented as `Value`.
 
@@ -207,9 +230,6 @@ class Value(wrapt.ObjectProxy, typing.Generic[T]):  # pyright: ignore [reportUnt
                 else None,
             )
 
-    else:  # pragma: no cover
-        pass
-
     if available.YAML:
 
         @staticmethod
@@ -220,6 +240,12 @@ class Value(wrapt.ObjectProxy, typing.Generic[T]):  # pyright: ignore [reportUnt
                 This method is used internally and __should not be
                 used directly__ unlike `toml` and `python` or `JSON`
                 counterparts.
+
+            Args:
+                value:
+                    Constructed YAML value to wrap.
+                node:
+                    YAML node providing source location and style metadata.
 
             Returns:
                 `YAML` element wrapped with `Value`.
@@ -235,9 +261,6 @@ class Value(wrapt.ObjectProxy, typing.Generic[T]):  # pyright: ignore [reportUnt
                 end_column=_optional_get(node, "end_mark", "column", offset=1),
                 style=getattr(node, "style", None),
             )
-
-    else:  # pragma: no cover
-        pass
 
 
 @dataclasses.dataclass
@@ -303,6 +326,10 @@ def _optional_get(
         offset:
             Pointer offset for the value, if any
             (useful in `YAML` 0-indexed positioning).
+
+    Returns:
+        A pointer to the nested attribute, or an empty pointer when an
+        attribute is unavailable.
 
     """
     current = node

@@ -63,18 +63,6 @@ reason = "Affects dev dependency"
 id = "PYSEC-2026-3547"
 reason = "Affects dev dependency"
 
-[[IgnoredVulns]]
-id = "PYSEC-2026-3481"
-reason = "Affects dev dependency"
-
-[[IgnoredVulns]]
-id = "PYSEC-2026-3482"
-reason = "Affects dev dependency"
-
-[[IgnoredVulns]]
-id = "PYSEC-2026-3483"
-reason = "Affects dev dependency"
-
 [[PackageOverrides]]
 ecosystem = "PyPI"
 name = "xmltodict"
@@ -519,6 +507,18 @@ ecosystem = "PyPI"
 name = "columnar"
 license.ignore = true
 reason = "dev dependency"
+
+[[PackageOverrides]]
+ecosystem = "PyPI"
+name = "pyperclip"
+license.ignore = true
+reason = "mcp dependency"
+
+[[PackageOverrides]]
+ecosystem = "PyPI"
+name = "uncalled-for"
+license.ignore = true
+reason = "mcp dependency"
 
 [[PackageOverrides]]
 ecosystem = "PyPI"

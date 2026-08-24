@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -42,6 +42,7 @@ from __future__ import annotations
 from importlib.metadata import version
 
 from . import (
+    available,
     check,
     cli,
     error,
@@ -64,6 +65,7 @@ __all__: list[str] = [
     "Pointer",
     "Value",
     "__version__",
+    "available",
     "check",
     "cli",
     "error",
@@ -75,3 +77,8 @@ __all__: list[str] = [
     "settings",
     "type_definitions",
 ]
+
+if available.MCP:
+    from . import mcp as mcp
+
+    __all__ += ["mcp"]
