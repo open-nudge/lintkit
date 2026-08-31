@@ -82,3 +82,8 @@ if available.MCP:
     from . import mcp as mcp
 
     __all__ += ["mcp"]
+
+if available.LOADFIG:
+    from ._config import config
+
+    __all__ += ["config"]

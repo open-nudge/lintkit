@@ -125,12 +125,15 @@ lintkit.run(["linter.py", "file1.py", "file2.py"])
 ```
 
 > [!NOTE]
-> `lintkit` provides extras (`rich`, `toml`, `yaml`
+> `lintkit` provides extras (`config`, `mcp`, `output`, `rich`, `toml`, `yaml`,
 > and `all` containing everything) to provide additional functionality.
 
 ```sh
 # To create rules utilizing YAML
 > pip install lintkit[rich, yaml]
+
+# To load linter configuration
+> pip install lintkit[config]
 ```
 
 ## Learn

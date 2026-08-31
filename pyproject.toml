@@ -86,11 +86,15 @@ optional-dependencies.yaml = [
 optional-dependencies.mcp = [
   "fastmcp>=4.0.0b3",
 ]
+optional-dependencies.config = [
+  "loadfig>=0.1.1",
+]
 
 optional-dependencies.output = [
   "lintkit[rich]",
 ]
 optional-dependencies.all = [
+  "lintkit[config]",
   "lintkit[output]",
   "lintkit[yaml]",
   "lintkit[toml]",

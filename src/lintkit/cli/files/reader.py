@@ -58,15 +58,27 @@ class Default(Base):
 class Recursive(Base):
     """Reader that recursively expands directory arguments."""
 
-    def __init__(self, suffix: str) -> None:
+    def __init__(
+        self,
+        suffix: str,
+        ignore_directories: Iterable[str] | None = None,
+    ) -> None:
         """Configure recursive directory matching.
 
         Args:
             suffix:
                 File suffix to match below directory arguments.
+            ignore_directories:
+                Exact directory component names to exclude while expanding
+                directory arguments.
 
         """
         self.suffix: str = suffix
+        self.ignore_directories: frozenset[str] = (
+            frozenset(ignore_directories)
+            if ignore_directories is not None
+            else frozenset()
+        )
 
     @typing.override
     def __call__(
@@ -85,11 +97,18 @@ class Recursive(Base):
         seen: set[pathlib.Path] = set()
         for value in paths:
             path = pathlib.Path(value).resolve()
-            candidates = (
-                path.rglob(f"*{self.suffix}") if path.is_dir() else (path,)
-            )
+            directory = path.is_dir()
+            candidates = path.rglob(f"*{self.suffix}") if directory else (path,)
             for candidate in candidates:
                 resolved = candidate.resolve()
-                if resolved not in seen:  # pragma: no branch
+                if (
+                    not (
+                        directory
+                        and self.ignore_directories.intersection(
+                            resolved.parts[:-1]
+                        )
+                    )
+                    and resolved not in seen
+                ):  # pragma: no branch
                     seen.add(resolved)
                     yield resolved

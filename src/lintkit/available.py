@@ -64,3 +64,10 @@ MCP: bool = _modules_exist("fastmcp")
 
 Used to expose the optional MCP API and CLI command.
 """
+
+LOADFIG: bool = _modules_exist("loadfig")
+"""`Bool` indicating Loadfig availability.
+
+Used to load linter configuration from `pyproject.toml` and dedicated files.
+See the [Loadfig project](https://github.com/open-nudge/loadfig).
+"""
