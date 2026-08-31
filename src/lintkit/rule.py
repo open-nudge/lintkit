@@ -33,8 +33,8 @@ if typing.TYPE_CHECKING:
     from ._ignore import Span
 
 
+from . import available, registry, settings
 from . import error as e
-from . import registry, settings
 from ._value import Value
 
 T = typing.TypeVar("T")
@@ -177,6 +177,30 @@ class Rule(abc.ABC):
             Separate usage examples, or `None` when none are provided.
         """
         return None
+
+    if available.LOADFIG:  # pragma: no branch
+        from lintkit import (  # noqa: PLC0415
+            _config,  # pyright: ignore[reportUnannotatedClassAttribute]
+        )
+
+        def config(self, key: str, default: typing.Any = None) -> typing.Any:
+            """Return one value from this rule's configuration table.
+
+            Args:
+                key:
+                    Configuration key to read.
+                default:
+                    Value returned when the rule table or key is absent.
+
+            Returns:
+                The configured value, or `default` when it is absent.
+
+            """
+            rule = self._config.config().get(
+                f"{settings._name()}{self.code}",  # noqa: SLF001
+                {},
+            )
+            return rule.get(key, default)
 
     def __init_subclass__(
         cls,

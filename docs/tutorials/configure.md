@@ -36,23 +36,24 @@ class NameIsShort(PyProjectNameLoader, code=4):
         # Always call base constructor
         super().__init__()
 
-        self.max_name_length = 10
+        self.max_name_length = self.config("max_name_length", 10)
 
     def check(self, value: lintkit.Value[str | None]) -> bool:
         # Change 10 to attribute
-        return isinstance(value, str) and len(value) < self.max_name_length
+        return isinstance(value, str) and len(value) > self.max_name_length
 
     def message(self, v: lintkit.Value | None) -> str:
         return (
-            f"Field 'project.name' is too long ({len(v)} > {name_length} chars)"
+            f"Field 'project.name' is too long "
+            f"({len(v)} > {self.max_name_length} chars)"
         )
 ```
 
-Read on to see how to inject `max_name_length` attribute without passing
-values to `__init__`
+Read on to see how `max_name_length` is loaded without passing values to
+`__init__`.
 
 > [!TIP]
-> [`lintkit.rule.Rule`][] is instantiated by [`lintkit.run`][] call
+> \[`lintkit.rule.Rule`\][] is instantiated by \[`lintkit.run`\][] call
 > and no arguments are passed.
 
 ## Update config
@@ -63,56 +64,48 @@ add the following section to our linter:
 ```toml
 [tool.mylinter]
 
-names = ["MYLINTER2", "MYLINTER3", "MYLINTER4"]
+include_codes = [4]
 
-max_name_lenth = 5
+[tool.mylinter.MYLINTER4]
+
+max_name_length = 5
 ```
 
-## Load and inject config
+## Load config
 
-To load config of linter from `pyproject.toml` one can use
-[`loadfig`](https://github.com/open-nudge/loadfig) project which
-is no dependency library loading tool section from `pyproject.toml`.
+Lintkit can use [`loadfig`](https://github.com/open-nudge/loadfig) to load the
+linter's tool section from `pyproject.toml`. Install the `config` extra:
 
 You can install it with pip (or use your package manager like
 [`uv`](https://github.com/astral-sh/uv)):
 
 ```shell
-> pip install loadfig
+> pip install lintkit[config]
 ```
 
 > [!TIP]
-> You can use any other config loading tool or write
-> one yourself.
+> Installing `lintkit[config]` enables both \[`lintkit.config`\][] and
+> \[`lintkit.rule.Rule.config`\][]. Without the extra, neither API is exposed.
 
 Now edit `run.py`:
 
 ```python
 import sys
 
-import loadfig
 import lintkit
 
 import rules
 
 
 def main() -> None:
-    # Simply specify name of the tool
-    config: dict = loadfig.config("mylinter")
-
-    # Add `max_name_length` attribute to all rules
-    # Has to be run after `rules` are imported!
-    lintkit.registry.inject(
-        "max_name_length",
-        # None if the value was not defined
-        config.get("max_name_length", None),
-    )
+    # Loads [tool.mylinter], based on lowercase lintkit.settings.name
+    config = lintkit.config()
 
     # Run the linter with code inclusions and exclusions
     exit_code = lintkit.run(
         ["pyproject.toml"],
-        include_rules=config.get("include_rules", None),
-        exclude_rules=config.get("exclude_rules", None),
+        include_codes=config.get("include_codes", None),
+        exclude_codes=config.get("exclude_codes", None),
     )
 
     sys.exit(exit_code)
@@ -124,9 +117,13 @@ if __name__ == "__main__":
 
 Things you should note:
 
-- [`lintkit.registry.inject`][] allows you to register variables
-    (or whole configs) so they are available to __all rules__
-- [`lintkit.run`][] gives you more flexibility (e.g.
+- `Rule.config()` reads only the nested table matching that rule's exact public
+    name, such as `[tool.mylinter.MYLINTER4]`
+- \[`lintkit.config`\][] returns the whole `[tool.mylinter]` table for shared
+    options such as rule selection
+- \[`lintkit.registry.inject`\][] remains available for unrelated custom
+    resources that should be shared by __all rules__
+- \[`lintkit.run`\][] gives you more flexibility (e.g.
     including or excluding code parts).
 
 > [!NOTE]

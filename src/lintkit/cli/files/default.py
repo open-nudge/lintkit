@@ -54,6 +54,7 @@ class Recursive(Base):
         self,
         suffix: str,
         directory: str | pathlib.Path | None = None,
+        ignore_directories: Iterable[str] | None = None,
     ) -> None:
         """Configure recursive default files.
 
@@ -63,10 +64,17 @@ class Recursive(Base):
             directory:
                 Root directory. `None` selects the current directory when the
                 provider is called.
+            ignore_directories:
+                Exact directory component names to exclude recursively.
 
         """
         self.suffix: str = suffix
         self.directory: str | pathlib.Path | None = directory
+        self.ignore_directories: frozenset[str] = (
+            frozenset(ignore_directories)
+            if ignore_directories is not None
+            else frozenset()
+        )
 
     @typing.override
     def __call__(self) -> Iterable[str | pathlib.Path]:
@@ -79,6 +87,6 @@ class Recursive(Base):
         directory = (
             pathlib.Path.cwd() if self.directory is None else self.directory
         )
-        return reader.Recursive(self.suffix)(
+        return reader.Recursive(self.suffix, self.ignore_directories)(
             (pathlib.Path(directory).resolve(),)
         )

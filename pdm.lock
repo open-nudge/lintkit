@@ -2,10 +2,10 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default", "all", "dev-all", "dev-branch", "dev-citation", "dev-commit", "dev-docs", "dev-executable", "dev-file", "dev-generation", "dev-github", "dev-ini", "dev-json", "dev-legal", "dev-markdown", "dev-pre-commit", "dev-prek", "dev-pyproject", "dev-pytest", "dev-python", "dev-release", "dev-shell", "dev-symlink", "dev-tests", "dev-text", "dev-toml", "dev-typing", "dev-yaml", "mcp", "output", "rich", "toml", "yaml"]
+groups = ["default", "all", "config", "dev-all", "dev-branch", "dev-citation", "dev-commit", "dev-docs", "dev-executable", "dev-file", "dev-generation", "dev-github", "dev-ini", "dev-json", "dev-legal", "dev-markdown", "dev-pre-commit", "dev-prek", "dev-pyproject", "dev-pytest", "dev-python", "dev-release", "dev-shell", "dev-symlink", "dev-tests", "dev-text", "dev-toml", "dev-typing", "dev-yaml", "mcp", "output", "rich", "toml", "yaml"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.1"
-content_hash = "sha256:2d15fa09569bfdd127799a292cba613635da10bd06a7ba91718cd717b6e1cae6"
+content_hash = "sha256:4d371b3cd54ca351d628f152f515a5fc95c9c887adc5f30488e187c761754c2c"
 
 [[metadata.targets]]
 requires_python = ">=3.12"
@@ -2120,6 +2120,16 @@ dependencies = [
 files = [
     {file = "license_expression-30.4.4-py3-none-any.whl", hash = "sha256:421788fdcadb41f049d2dc934ce666626265aeccefddd25e162a26f23bcbf8a4"},
     {file = "license_expression-30.4.4.tar.gz", hash = "sha256:73448f0aacd8d0808895bdc4b2c8e01a8d67646e4188f887375398c761f340fd"},
+]
+
+[[package]]
+name = "loadfig"
+version = "0.1.1"
+requires_python = ">=3.12"
+summary = "One-liner Python pyproject config loader. Lightweight, simple, and VCS-aware with root auto-discovery."
+groups = ["all", "config"]
+files = [
+    {file = "loadfig-0.1.1-py3-none-any.whl", hash = "sha256:11ea9382802b3bb255e4694959c0e076151ba9028ce3956f91b617ab8164a10e"},
 ]
 
 [[package]]
