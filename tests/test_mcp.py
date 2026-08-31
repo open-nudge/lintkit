@@ -24,7 +24,7 @@ if typing.TYPE_CHECKING:
 
 
 @pytest.fixture(scope="module")
-def files_default(
+def file_default(
     tmp_path_factory: pytest.TempPathFactory,
 ) -> tuple[pathlib.Path]:
     """Create one default check file shared by the MCP tool cases."""
@@ -35,20 +35,36 @@ def files_default(
 
 @pytest.fixture(scope="module")
 def file_explicit(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
-    """Create one explicit check file shared by the MCP tool cases."""
-    path = tmp_path_factory.mktemp("mcp-explicit") / "explicit.py"
+    """Create one explicit check directory shared by the MCP tool cases."""
+    directory = tmp_path_factory.mktemp("mcp-explicit")
+    path = directory / "nested" / "explicit.py"
+    path.parent.mkdir()
     _ = path.write_text("def miss_example():\n    pass\n")
-    return path
+    return directory
 
 
 @pytest.mark.parametrize(
-    ("tool_arguments", "enable", "disable"),
     (
-        ([], None, None),
+        "tool_arguments",
+        "enable",
+        "disable",
+        "files_default",
+        "files_reader",
+    ),
+    (
+        (
+            [],
+            None,
+            None,
+            lintkit.cli.files.default.Recursive(".py"),
+            lintkit.cli.files.reader.Default(),
+        ),
         (
             ["--enable", "check", "rules", "--disable", "rules"],
             ["check", "rules"],
             ["rules"],
+            lintkit.cli.files.default.Default(),
+            lintkit.cli.files.reader.Recursive(".py"),
         ),
     ),
 )
@@ -95,11 +111,13 @@ def test_cli_dispatch(  # noqa: PLR0913, PLR0917
     tool_arguments: list[str],
     enable: list[str] | None,
     disable: list[str] | None,
+    files_default: lintkit.cli.files.default.Base,
+    files_reader: lintkit.cli.files.reader.Base,
     name_arguments: list[str],
     name: str,
     transport_arguments: list[str],
     run_arguments: dict[str, object],
-    files_default: tuple[pathlib.Path],
+    file_default: tuple[pathlib.Path],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test independent MCP CLI options compose into exact dispatch calls.
@@ -111,6 +129,10 @@ def test_cli_dispatch(  # noqa: PLR0913, PLR0917
             Expected enabled tools.
         disable:
             Expected disabled tools.
+        files_default:
+            Default-file provider passed through the CLI.
+        files_reader:
+            File reader passed through the CLI.
         name_arguments:
             Server-name CLI arguments.
         name:
@@ -119,8 +141,8 @@ def test_cli_dispatch(  # noqa: PLR0913, PLR0917
             Transport CLI arguments.
         run_arguments:
             Expected server run arguments.
-        files_default:
-            Shared default files passed through the CLI.
+        file_default:
+            Shared default file used by the recursive provider.
         monkeypatch:
             Pytest fixture used to replace server startup.
     """
@@ -128,14 +150,24 @@ def test_cli_dispatch(  # noqa: PLR0913, PLR0917
     run = Mock()
     monkeypatch.setattr(lintkit.mcp, "server", factory)
     monkeypatch.setattr(fastmcp.FastMCP, "run", run)
+    monkeypatch.chdir(file_default[0].parent)
+    try:
+        expected_default = tuple(files_default())
+    except lintkit.error.FilesMissingError:
+        expected_default = None
     lintkit.cli.main(
         version="0.0.1",
         files_default=files_default,
+        files_reader=files_reader,
         args=["mcp", *tool_arguments, *name_arguments, *transport_arguments],
     )
 
     factory.assert_called_once_with(
-        enable, disable, files_default=files_default, name=name
+        enable,
+        disable,
+        files_default=expected_default,
+        files_reader=files_reader,
+        name=name,
     )
     run.assert_called_once_with(**run_arguments)
 
@@ -155,7 +187,6 @@ def test_cli_dispatch(  # noqa: PLR0913, PLR0917
 )
 def test_stdio_rejects_http_options(
     option: list[str],
-    files_default: tuple[pathlib.Path],
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Test every HTTP-only option under stdio.
@@ -163,15 +194,12 @@ def test_stdio_rejects_http_options(
     Args:
         option:
             One HTTP-only CLI option and any required value.
-        files_default:
-            Shared default files passed through the CLI.
         capsys:
             Pytest fixture used to capture the parser error.
     """
     with pytest.raises(SystemExit) as exception:
         lintkit.cli.main(
             version="0.0.1",
-            files_default=files_default,
             args=["mcp", *option],
         )
     assert (
@@ -186,41 +214,61 @@ def test_stdio_rejects_http_options(
     ("check", "rules", "examples"),
 )
 @pytest.mark.parametrize(
-    ("files_mode", "expected"),
+    ("files_default", "files_reader", "expected"),
     (
-        ("default", "TEST0"),
-        ("explicit", "TEST1"),
+        (
+            lintkit.cli.files.default.Recursive(".py"),
+            lintkit.cli.files.reader.Default(),
+            "TEST0",
+        ),
+        (
+            lintkit.cli.files.default.Default(),
+            lintkit.cli.files.reader.Recursive(".py"),
+            "TEST1",
+        ),
     ),
 )
-async def test_tools(
+async def test_tools(  # noqa: PLR0913, PLR0917
     tool: str,
-    files_mode: typing.Literal["default", "explicit"],
+    files_default: lintkit.cli.files.default.Base,
+    files_reader: lintkit.cli.files.reader.Base,
     expected: str,
-    files_default: tuple[pathlib.Path],
+    file_default: tuple[pathlib.Path],
     file_explicit: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test each tool returns its relevant rule data.
 
     Args:
         tool:
             Registered tool to call.
-        files_mode:
-            Whether the check tool uses configured or explicit files.
+        files_default:
+            Default-file provider used by the server.
+        files_reader:
+            File reader used by the server.
         expected:
             Rule token expected in the returned data.
-        files_default:
-            Shared default files used by the check tool.
+        file_default:
+            Shared default file used by the recursive provider.
         file_explicit:
-            Shared explicit file used by the check tool.
+            Shared explicit directory used by the check tool.
+        monkeypatch:
+            Pytest fixture used to set the provider's working directory.
     """
+    monkeypatch.chdir(file_default[0].parent)
+    try:
+        configured_default = tuple(files_default())
+    except lintkit.error.FilesMissingError:
+        configured_default = None
     arguments = (
         {"files": [str(file_explicit)]}
-        if files_mode == "explicit" and tool == "check"
+        if configured_default is None and tool == "check"
         else {}
     )
     async with fastmcp.Client(
         lintkit.mcp.server(
-            files_default=(files_default if files_mode == "default" else None)
+            files_default=configured_default,
+            files_reader=files_reader,
         )
     ) as client:
         result = await client.call_tool(tool, arguments)

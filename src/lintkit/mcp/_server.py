@@ -14,6 +14,7 @@ import fastmcp
 
 from .. import cli as command
 from .. import error, registry, settings
+from ..cli.files import reader
 from . import _check
 
 if typing.TYPE_CHECKING:
@@ -26,6 +27,7 @@ def server(
     disable: Iterable[str] | None = None,
     *,
     files_default: Iterable[str | Path] | None = None,
+    files_reader: reader.Base | None = None,
     **mcp_kwargs: typing.Any,
 ) -> typing.Any:
     """Create and configure one FastMCP server.
@@ -38,6 +40,9 @@ def server(
         files_default:
             Paths used when an MCP `check` call omits `files`. `None` keeps
             `files` required. Defaults are captured during construction.
+        files_reader:
+            Reader applied to explicit paths and captured defaults. `None`
+            preserves the selected paths unchanged.
         **mcp_kwargs:
             FastMCP constructor keyword arguments. Caller values override
             lintkit defaults.
@@ -54,6 +59,8 @@ def server(
     rule_names = tuple(f"{name}{code}" for code in registry.codes())
     if not rule_names:
         raise error.RegistryEmptyError
+    if files_reader is None:  # pragma: no branch
+        files_reader = reader.Default()
     mcp_kwargs.setdefault("name", name)
     instance = fastmcp.FastMCP(**mcp_kwargs)
     annotations = {
@@ -64,7 +71,7 @@ def server(
     }
     tools = (
         (
-            _check.check(files_default),
+            _check.check(files_default, files_reader),
             "check",
             "Validate files against linting rules.",
         ),

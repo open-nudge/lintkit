@@ -61,7 +61,6 @@ def test_commands(
     with pytest.raises(SystemExit) as exception:
         lintkit.cli.main(
             version="0.0.1",
-            files_default=(),
             names=names,
             args=arguments,
         )
@@ -111,7 +110,6 @@ def test_json_check(
     with pytest.raises(SystemExit) as exception:
         lintkit.cli.main(
             version="0.0.1",
-            files_default=(),
             args=[
                 "check",
                 str(file),

@@ -11,6 +11,7 @@ import typing
 
 from .. import error, output, settings
 from . import _parser, _subcommand
+from .files import default, reader
 
 if typing.TYPE_CHECKING:
     import pathlib
@@ -18,10 +19,11 @@ if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
 
-def main(  # noqa: C901, PLR0913
+def main(  # noqa: C901, PLR0912, PLR0913, PLR0915
     *,
     version: str,
-    files_default: Iterable[str | pathlib.Path],
+    files_default: default.Base | None = None,
+    files_reader: reader.Base | None = None,
     files_help: str | None = None,
     names: Iterable[str] | None = None,
     end_mode: typing.Literal["first", "all"] = "all",
@@ -44,8 +46,8 @@ def main(  # noqa: C901, PLR0913
         # Run the CLI
         lintkit.cli.main(
             version="0.1.0",
-            # Only iterate over Python files
-            files_default=pathlib.Path(".").rglob("*.py"),
+            files_default=lintkit.cli.files.default.Recursive(".py"),
+            files_reader=lintkit.cli.files.reader.Recursive(".py"),
             files_help=(
                 "Files to process (default: all Python files recursively)",
             ),
@@ -56,8 +58,9 @@ def main(  # noqa: C901, PLR0913
         version:
             Version of the linter, likely following semantic versioning.
         files_default:
-            Default set of files to iterate over __IF__ these were not provided
-            on the command line (or provided in `args`) which take precedence.
+            Callable that provides files when explicit paths are not used.
+        files_reader:
+            Callable that reads the selected explicit or default paths.
         files_help:
             CLI help message about files. It allows you to have a more accurate
             description of the defaults (e.g. only Python files, see example).
@@ -89,20 +92,21 @@ def main(  # noqa: C901, PLR0913
             If argument parsing returns an unknown subcommand.
 
     """
+    if files_default is None:  # pragma: no branch
+        files_default = default.Default()
+    if files_reader is None:  # pragma: no branch
+        files_reader = reader.Default()
+
     parser = _parser.root(
         version,
-        files_default,
         files_help,
         pass_files,
         **kwargs,
     )
     parsed_args = parser.parse_args(args)
 
-    if not pass_files:  # pragma: no cover
-        parsed_args.files = files_default
-
     if parsed_args.subcommand == "mcp":
-        _mcp(parsed_args, files_default)
+        _mcp(parsed_args, files_default, files_reader)
         return
 
     selected_names = names if parsed_args.names is None else parsed_args.names
@@ -110,15 +114,25 @@ def main(  # noqa: C901, PLR0913
         selected_end = (
             end_mode if parsed_args.end_mode is None else parsed_args.end_mode
         )
-        _check(
-            parsed_args.files,
-            selected_names,
-            selected_end,
-            parsed_args.output,
-        )
+        try:
+            selected_files = (
+                parsed_args.files
+                if pass_files and parsed_args.files
+                else files_default()
+            )
+            _check(
+                files_reader(selected_files),
+                selected_names,
+                selected_end,
+                parsed_args.output,
+            )
+        except error.FilesMissingError as exception:  # pragma: no cover
+            parser.error(str(exception))
+
     if parsed_args.subcommand == "rules":
         print(_subcommand.rules(selected_names))  # noqa: T201
         raise SystemExit(0)
+
     if parsed_args.subcommand == "examples":
         rendered = _subcommand.examples(selected_names)
         if rendered:  # pragma: no branch
@@ -163,7 +177,8 @@ def _check(
 
 def _mcp(
     parsed_args: typing.Any,
-    files_default: Iterable[str | pathlib.Path],
+    files_default: default.Base,
+    files_reader: reader.Base,
 ) -> None:
     """Start the selected MCP transport.
 
@@ -172,6 +187,8 @@ def _mcp(
             Parsed MCP command arguments.
         files_default:
             Default files configured by the linter.
+        files_reader:
+            Reader configured by the linter.
 
     """
     from .. import mcp  # noqa: PLC0415
@@ -182,10 +199,15 @@ def _mcp(
     }
     if parsed_args.transport == "http":
         _http_kwargs(run_kwargs, parsed_args)
+    try:
+        mcp_defaults = tuple(files_default())
+    except error.FilesMissingError:
+        mcp_defaults = None
     mcp.server(
         parsed_args.enable,
         parsed_args.disable,
-        files_default=files_default,
+        files_default=mcp_defaults,
+        files_reader=files_reader,
         name=parsed_args.name,
     ).run(**run_kwargs)
 

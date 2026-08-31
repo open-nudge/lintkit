@@ -23,7 +23,8 @@ Example:
 
 from __future__ import annotations
 
+from . import files
 from ._main import main
 from ._subcommand import check, examples, rules
 
-__all__ = ["check", "examples", "main", "rules"]
+__all__ = ["check", "examples", "files", "main", "rules"]
