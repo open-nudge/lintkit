@@ -5,72 +5,78 @@ SPDX-FileContributor: szymonmaszke <github@maszke.co>
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# Serve a linter with MCP
+# Model Context Protocol (MCP) server
 
-Install the optional MCP dependency in your linter dependencies:
+Install the optional `mcp` dependency:
 
-```console
-pip install "lintkit[mcp]"
+```sh
+> pip install "lintkit[mcp]"
 ```
 
-Your lintkit-based CLI gets the `mcp` subcommand only when FastMCP is
-installed. Start the server with the default standard input and output
-transport:
+Your lintkit-based linter will now get the `mcp` command.
+Start the server with the default `stdio` transport (you can change it
+using flags):
 
-```console
-lintkit mcp
+```sh
+> lintkit mcp
 ```
 
-The server exposes the `check`, `rules`, and `examples` tools with the following
+## Tools
+
+The server exposes the same commands as `lintkit.cli.main` does
+(`check`, `rules`, `examples`) as tools with the following
 properties:
 
+- omit `names` to select all rules (default)
 - each tool has one `names` selector
-- omit `names` to select all registered rules
+- values must be exact, case-sensitive full names,
+    such as `MYLINTER10`; names are not uppercased and the choices
+    are properly typed as `typing.Literal`
 - `check` accepts explicit `files`; under `lintkit mcp`, omitting them uses the
-  defaults configured by the linter's `lintkit.cli.main` call.
+    defaults configured by the linter's `lintkit.cli.main` call
+    (we advise to use a recursive one)
 
-Values must be exact, case-sensitive full names,
-such as `MYLINTER10`; names are not converted to uppercase.
-
-Use `--enable` as an allowlist or `--disable` as a tool blocklist
+You can `--enable` and/or `--disable` (takes precedence) tools
 (by default all tools are enabled):
 
-```console
-lintkit mcp --enable check rules --disable rules
+```sh
+> lintkit mcp --enable check rules --disable rules
 ```
 
-The example exposes only `check` because disabling a tool has final
-precedence.
+## Server CLI options
 
 Start a stateless HTTP server with explicit network and origin controls:
 
-```console
-lintkit mcp --transport http --host 127.0.0.1 --port 8000 --path /mcp \
+```sh
+> lintkit mcp --transport http --host 127.0.0.1 --port 8000 --path /mcp \
   --host-origin-protection --allowed-host localhost \
   --allowed-origin https://example.com
 ```
 
 Repeat `--allowed-host` and `--allowed-origin` to add values. Use
 `--no-host-origin-protection` to disable protection explicitly. HTTP remains
-stateless unless you add the legacy `--stateful` option. These HTTP options
-are rejected with the default `stdio` transport.
+stateless unless you add the legacy (since 2026-07-06 specification)
+`--stateful` option.
 
-Use `--name` to replace the default server name, which is the linter name:
+Use `--name` to replace the default server name, which is the same as linter's
+name by default (different from randomly generated default of `fastmcp`):
 
-```console
-lintkit mcp --name "Project linter"
+```sh
+> lintkit mcp --name "Project linter"
 ```
 
-## Build or mount the server
+## Server settings
 
-Import your project rules before you create the server. Rule classes register
-themselves during import. Server construction raises
-[`lintkit.error.RegistryEmptyError`][] when no rules are registered.
+Import your project rules before you create the server.
+Server construction raises
+[`lintkit.error.RegistryEmptyError`][] when there are no rules found.
 
 ```python
 from fastmcp import FastMCP
 
 import lintkit
+
+# Note rules import before server!
 import my_linter.rules  # noqa: F401
 
 my_linter_server = lintkit.mcp.server()
@@ -79,27 +85,29 @@ parent = FastMCP("My project")
 parent.mount(my_linter_server, namespace="lint")
 ```
 
-The parent server exposes the tools as `lint_check`, `lint_rules`, and
-`lint_examples`. Each call to [`lintkit.mcp.server`][] creates an independent
-server, so visibility settings do not leak between parent applications.
-Each server also captures the registered full names in its three tool schemas.
-Rules imported later appear only in a new server.
+- the parent server exposes the tools as `lint_<TOOL>` (e.g. `lint_check`).
+- each call to [`lintkit.mcp.server`][] creates an independent server
 
-A directly constructed server requires `files` in every `check` call. To make
-that input optional, provide defaults when constructing it:
+A directly constructed server requires `files` in every `check` call
+(error is raised when these are not provided).
+
+To make that input optional, provide defaults when constructing it:
 
 ```python
 my_linter_server = lintkit.mcp.server(
+    # If no files provided go over $CWD/src and $CWD/tests
     files_default=("src", "tests"),
+    # Read all Python files
+    files_reader=lintkit.cli.files.reader.Recursive(".py"),
 )
 ```
 
-When a client omits `files`, `check` uses this captured snapshot. An explicitly
-provided list takes precedence, including an empty list. One-shot iterables,
-such as `Path.rglob()`, are materialized once and can be reused across calls.
+> **NOTE:**
+> The configured reader processes both the defaults and explicit MCP paths, so
+> clients have their directories and Python files checked.
 
-The factory uses the linter name by default. You can explicitly provide
-`instructions` and pass other supported FastMCP constructor arguments
+You can explicitly provide
+`instructions` and pass other `fastmcp` constructor arguments
 directly:
 
 ```python
@@ -110,5 +118,13 @@ custom_server = lintkit.mcp.server(
 )
 ```
 
-Call `run` or mount the returned FastMCP instance yourself when you need
-deployment settings that the lintkit CLI does not expose.
+Finally you can run or mount the returned instance:
+
+```python
+# Run directly (blocking)
+custom_server.run()
+
+# Or mount in a parent server
+parent = FastMCP("My project")
+parent.mount(custom_server, namespace="lint")
+```

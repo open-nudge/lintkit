@@ -87,6 +87,15 @@ class LintkitInternalError(LintkitError):
 
 
 @typing.final
+class FilesMissingError(LintkitError):
+    """Raised when a CLI check receives no file paths."""
+
+    def __init__(self) -> None:
+        """Initialize the error with file guidance."""
+        super().__init__("No files were provided.")
+
+
+@typing.final
 class RuleNameError(LintkitError):
     """Raised when a command receives an unknown full rule name."""
 

@@ -20,7 +20,6 @@ if typing.TYPE_CHECKING:
 
 def root(
     version: str,
-    files_default: Iterable[str | pathlib.Path],
     files_help: str | None = None,
     pass_files: bool = True,  # noqa: FBT001, FBT002
     **kwargs: typing.Any,
@@ -33,9 +32,6 @@ def root(
     Args:
         version:
             Version of the linter, likely following semantic versioning.
-        files_default:
-            Default set of files to iterate over __IF__ these were not provided
-            on the command line (or provided in `args`) which take precedence.
         files_help:
             CLI help message about files. It allows you to have a more accurate
             description of the defaults (e.g. only Python files, see example).
@@ -65,7 +61,7 @@ def root(
         dest="subcommand",
         required=True,
     )
-    _check(subparsers, files_default, files_help, pass_files)
+    _check(subparsers, files_help, pass_files)
     _rules(subparsers)
     _examples(subparsers)
     if available.MCP:
@@ -75,8 +71,7 @@ def root(
 
 
 def _check(
-    subparsers,  # noqa: ANN001  # pyright: ignore [reportUnknownParameterType, reportMissingParameterType]
-    default: Iterable[str | pathlib.Path],
+    subparsers: argparse._SubParsersAction[_RootParser],
     help_: str | None,
     pass_files: bool = True,  # noqa: FBT001, FBT002
 ) -> None:
@@ -85,9 +80,6 @@ def _check(
     Args:
         subparsers:
             Object where this subparser will be registered.
-        default:
-            Default set of files to iterate over __IF__ these were not provided
-            on the command line (or provided in `args`) which take precedence.
         help_:
             CLI help message about files. It allows you to have a more accurate
             description of the defaults (e.g. only Python files, see example).
@@ -108,26 +100,24 @@ def _check(
 
             - You can provide a list of files to check (useful when
             used with, for example, pre-commit)
-            - If no FILES arguments are provided, this program runs on
-            all Python files found in the current working directory.
-            - If one of the arguments is directory, program will
-            process each file within it.
+            - File defaults and directory expansion depend on the linter's
+            configuration.
         """),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     if help_ is None:  # pragma: no branch
-        help_ = "Files to process (default: all files in current working directory, recursively)"
+        help_ = "Files to process (defaults and directories depend on linter configuration)"
 
     if pass_files:  # pragma: no branch
         _ = parser.add_argument(
             "files",
             nargs="*",
             type=pathlib.Path,
-            default=default,
+            default=(),
             help=help_,
         )
 
-    _selectors(parser)  # pyright: ignore[reportUnknownArgumentType]
+    _selectors(parser)
 
     _ = parser.add_argument(
         "--end_mode",
@@ -147,7 +137,7 @@ def _check(
     )
 
 
-def _rules(subparsers) -> None:  # noqa: ANN001  # pyright: ignore [reportUnknownParameterType, reportMissingParameterType]
+def _rules(subparsers: argparse._SubParsersAction[_RootParser]) -> None:
     """Create `rules` subcommand subparser.
 
     Args:
@@ -160,10 +150,10 @@ def _rules(subparsers) -> None:  # noqa: ANN001  # pyright: ignore [reportUnknow
         description="Display selected rules and their descriptions.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    _selectors(parser)  # pyright: ignore[reportUnknownArgumentType]
+    _selectors(parser)
 
 
-def _examples(subparsers) -> None:  # noqa: ANN001  # pyright: ignore [reportUnknownParameterType, reportMissingParameterType]
+def _examples(subparsers: argparse._SubParsersAction[_RootParser]) -> None:
     """Create `examples` subcommand subparser.
 
     Args:
@@ -177,10 +167,10 @@ def _examples(subparsers) -> None:  # noqa: ANN001  # pyright: ignore [reportUnk
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    _selectors(parser)  # pyright: ignore[reportUnknownArgumentType]
+    _selectors(parser)
 
 
-def _mcp(subparsers) -> None:  # noqa: ANN001  # pyright: ignore [reportUnknownParameterType, reportMissingParameterType]
+def _mcp(subparsers: argparse._SubParsersAction[_RootParser]) -> None:
     """Create the optional `mcp` subcommand parser.
 
     Args:
