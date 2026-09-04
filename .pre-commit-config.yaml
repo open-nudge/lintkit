@@ -34,7 +34,7 @@ repos:
         entry: "conform enforce"
         pass_filenames: false
   - repo: "https://github.com/trufflesecurity/trufflehog"
-    rev: "20652fbbdefffcdaa493a5bf57ab2ac6b1db715b"  # frozen: v3.97.1
+    rev: "363923b901c911a9164f50b6c423f47c15372b1c"  # frozen: v3.97.4
     hooks:
       - id: "trufflehog"
         alias: "secrets"
@@ -50,7 +50,7 @@ repos:
           - "--licenses=MIT,Apache-2.0,BSD-2-Clause,BSD-3-Clause,Unlicense,Zlib,OFL-1.1,0BSD,PSF-2.0"
           - "./"
   - repo: "https://github.com/errata-ai/vale"
-    rev: "405a7dabd73651d8ba24c72767a70c065aa6716a"  # frozen: v3.19.0
+    rev: "fdc4cc754f58d953f668586dc1891064a746e0a2"  # frozen: v3.20.0
     hooks:
       - id: "vale"
         alias: "setup-natural-language"
@@ -62,7 +62,7 @@ repos:
         stages:
           - "pre-commit"
   - repo: "https://github.com/errata-ai/vale"
-    rev: "405a7dabd73651d8ba24c72767a70c065aa6716a"  # frozen: v3.19.0
+    rev: "fdc4cc754f58d953f668586dc1891064a746e0a2"  # frozen: v3.20.0
     hooks:
       - id: "vale"
         alias: "natural-language"

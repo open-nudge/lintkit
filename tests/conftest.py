@@ -18,7 +18,8 @@ import lintkit
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
-lintkit.settings.name = "TEST"
+lintkit.settings.name.tool = "LINTER"
+lintkit.settings.name.rule = "TEST"
 
 REGEXES = [
     "test_run.*",

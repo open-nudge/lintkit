@@ -66,7 +66,10 @@ def rules(names: Iterable[str] | None = None) -> str:
     header = ("Name", "Description")
     rows: list[tuple[str, str]] = [header]
     rows.extend(
-        (f"{settings._name()}{code}", registered[code].description())  # noqa: SLF001
+        (
+            f"{settings._name('rule')}{code}",  # noqa: SLF001
+            registered[code].description(),
+        )
         for code in selected
     )
 
@@ -103,7 +106,7 @@ def examples(names: Iterable[str] | None = None) -> str:
         Rendered examples in selection order.
 
     """
-    name = settings._name()  # noqa: SLF001
+    rule_name = settings._name("rule")  # noqa: SLF001
     rules = {rule.code: rule for rule in registry.rules()}
     selected_codes = registry.codes() if names is None else _codes(names)
     selected = (rules[code] for code in selected_codes)
@@ -112,7 +115,7 @@ def examples(names: Iterable[str] | None = None) -> str:
         rule_examples = rule.examples()
         if rule_examples:
             groups.append(
-                f"{name}{rule.code}:\n\n" + "\n\n".join(rule_examples)
+                f"{rule_name}{rule.code}:\n\n" + "\n\n".join(rule_examples)
             )
 
     return "\n\n".join(groups)
@@ -133,8 +136,8 @@ def _codes(names: Iterable[str]) -> Iterator[int]:
         Codes in caller order.
 
     """
-    prefix = settings._name()  # noqa: SLF001
-    registered = {f"{prefix}{code}": code for code in registry.codes()}
+    rule_name = settings._name("rule")  # noqa: SLF001
+    registered = {f"{rule_name}{code}": code for code in registry.codes()}
     for name in names:
         if name not in registered:  # pragma: no cover
             raise error.RuleNameError(name)

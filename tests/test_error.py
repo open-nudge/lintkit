@@ -26,19 +26,22 @@ if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
 
-def test_name_missing(request: pytest.FixtureRequest) -> None:
-    """Ensure an error occurs when `lintkit.settings.name` is not set.
+def test_name_missing(
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Ensure an error occurs when the rule identity is not set.
 
     Args:
         request:
             Fixture request used to get the path of the test file.
+        monkeypatch:
+            Fixture used to temporarily remove the rule identity.
 
     """
-    name = lintkit.settings.name
-    lintkit.settings.name = None
+    monkeypatch.setattr(lintkit.settings.name, "rule", None)
     with pytest.raises(lintkit.error.NameMissingError):
         _ = lintkit.run([request.path])
-    lintkit.settings.name = name
 
 
 def test_incorrect_inheritance() -> None:

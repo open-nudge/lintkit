@@ -55,13 +55,14 @@ def server(
             If project rules were not imported before server construction.
 
     """
-    name = settings._name()  # noqa: SLF001
-    rule_names = tuple(f"{name}{code}" for code in registry.codes())
+    tool_name = settings._name("tool")  # noqa: SLF001
+    rule_name = settings._name("rule")  # noqa: SLF001
+    rule_names = tuple(f"{rule_name}{code}" for code in registry.codes())
     if not rule_names:
         raise error.RegistryEmptyError
     if files_reader is None:  # pragma: no branch
         files_reader = reader.Default()
-    mcp_kwargs.setdefault("name", name)
+    mcp_kwargs.setdefault("name", tool_name)
     instance = fastmcp.FastMCP(**mcp_kwargs)
     annotations = {
         "readOnlyHint": True,
@@ -78,12 +79,12 @@ def server(
         (_rules, "rules", "List rules with their descriptions."),
         (_examples, "examples", "List examples related to the rules."),
     )
-    for function, tool_name, description in tools:
+    for function, mcp_tool_name, description in tools:
         _ = instance.tool(
             _typed(function, rule_names),
-            name=tool_name,
+            name=mcp_tool_name,
             description=description,
-            tags={"lintkit", name, tool_name},
+            tags={"lintkit", tool_name, mcp_tool_name},
             annotations=annotations,
             run_in_thread=False,
         )

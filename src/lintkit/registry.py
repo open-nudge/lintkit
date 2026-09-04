@@ -146,7 +146,7 @@ def _add(rule: type[Rule], code: int) -> None:  # pyright: ignore [reportUnusedF
     rule.code = code
     rule._ignore_line = re.compile(  # noqa: SLF001
         settings.ignore_line.format(
-            name=settings._name(),  # noqa: SLF001
+            name=settings._name("rule"),  # noqa: SLF001
             code=code,
         ),
     )

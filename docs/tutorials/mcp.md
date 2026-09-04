@@ -31,7 +31,8 @@ properties:
 - each tool has one `names` selector
 - values must be exact, case-sensitive full names,
     such as `MYLINTER10`; names are not uppercased and the choices
-    are properly typed as `typing.Literal`
+    are properly typed as `typing.Literal`. These identifiers use
+    `lintkit.settings.name.rule` for typing
 - `check` accepts explicit `files`; under `lintkit mcp`, omitting them uses the
     defaults configured by the linter's `lintkit.cli.main` call
     (we advise to use a recursive one)
@@ -58,8 +59,9 @@ Repeat `--allowed-host` and `--allowed-origin` to add values. Use
 stateless unless you add the legacy (since 2026-07-06 specification)
 `--stateful` option.
 
-Use `--name` to replace the default server name, which is the same as linter's
-name by default (different from randomly generated default of `fastmcp`):
+Use `--name` to replace the default server name, which is
+`lintkit.settings.name.tool` by default (different from the randomly generated
+default of `fastmcp`).
 
 ```sh
 > lintkit mcp --name "Project linter"

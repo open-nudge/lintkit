@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: © 2025 open-nudge <https://github.com/open-nudge>
+# SPDX-FileCopyrightText: © 2025, 2026 open-nudge <https://github.com/open-nudge>
 # SPDX-FileContributor: szymonmaszke <github@maszke.co>
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -77,7 +77,10 @@ def file(rule: Rule, content: str) -> bool:
     """
     return (
         re.search(
-            settings.ignore_file.format(name=settings.name, code=rule.code),
+            settings.ignore_file.format(
+                name=settings._name("rule"),  # noqa: SLF001
+                code=rule.code,
+            ),
             content,
         )
         is not None
@@ -109,10 +112,16 @@ def spans(file: pathlib.Path, rule: Rule, lines: list[str]) -> Iterator[Span]:
 
     """
     start_regex = re.compile(
-        settings.ignore_span_start.format(name=settings.name, code=rule.code)
+        settings.ignore_span_start.format(
+            name=settings._name("rule"),  # noqa: SLF001
+            code=rule.code,
+        )
     )
     end_regex = re.compile(
-        settings.ignore_span_end.format(name=settings.name, code=rule.code)
+        settings.ignore_span_end.format(
+            name=settings._name("rule"),  # noqa: SLF001
+            code=rule.code,
+        )
     )
 
     start = None

@@ -82,7 +82,8 @@ import itertools
 
 import lintkit
 
-lintkit.settings.name: str = "FILELINTER"
+lintkit.settings.name.tool = "filelinter"
+lintkit.settings.name.rule = "FILELINTER"
 
 
 # You might not inherit from `check.Check` as long as you fulfil the interface
@@ -168,7 +169,8 @@ import ast
 
 import lintkit
 
-lintkit.settings.name: str = "ALLLINTER"
+lintkit.settings.name.tool = "alllinter"
+lintkit.settings.name.rule = "ALLLINTER"
 
 
 class TooManyConditionals(lintkit.loader.Python, lintkit.rule.All, code=0):
