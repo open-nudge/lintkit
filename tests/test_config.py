@@ -29,7 +29,7 @@ def config_path(tmp_path: pathlib.Path) -> pathlib.Path:
         Path to the created configuration file.
 
     """
-    path = tmp_path / ".test.toml"
+    path = tmp_path / ".linter.toml"
     _ = path.write_text(
         """shared = "root"
 include_codes = [0, 1]

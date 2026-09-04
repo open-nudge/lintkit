@@ -175,7 +175,8 @@ class Output(abc.ABC):
 
         Args:
             name:
-                Name of the linter (equal to `lintkit.settings.name`).
+                Rule-identifier prefix (equal to
+                `lintkit.settings.name.rule`).
             code:
                 Numerical code of the rule.
             message:
@@ -229,7 +230,8 @@ class Stdout(Output):
 
         Args:
             name:
-                Name of the linter (equal to `lintkit.settings.name`).
+                Rule-identifier prefix (equal to
+                `lintkit.settings.name.rule`).
             code:
                 Numerical code of the rule.
             message:
@@ -273,7 +275,7 @@ class Accumulator(Output):
 
         Args:
             name:
-                Name of the linter.
+                Rule-identifier prefix.
             code:
                 Numerical rule code.
             message:
@@ -339,7 +341,8 @@ if available.RICH:
 
             Args:
                 name:
-                    Name of the linter (equal to `lintkit.settings.name`).
+                    Rule-identifier prefix (equal to
+                    `lintkit.settings.name.rule`).
                 code:
                     Numerical code of the rule.
                 message:
@@ -388,7 +391,8 @@ class JSON(Output):
 
         Args:
             name:
-                Name of the linter (equal to `lintkit.settings.name`).
+                Rule-identifier prefix (equal to
+                `lintkit.settings.name.rule`).
             code:
                 Numerical code of the rule.
             message:
@@ -432,7 +436,7 @@ def _plain(  # noqa: PLR0913, PLR0917
 
     Args:
         name:
-            Name of the linter.
+            Rule-identifier prefix.
         code:
             Numerical rule code.
         message:

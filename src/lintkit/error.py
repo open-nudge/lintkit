@@ -244,24 +244,34 @@ class IgnoreRangeError(LintkitError):
 
 @typing.final
 class NameMissingError(LintkitError):
-    """Raised when the linter's `lintkit.settings.name` was not set.
+    """Raised when one of the linter identities was not set.
 
     Note:
-        __Informs the linter creator__ `lintkit.settings.name` was not set,
-        as this value should be predefined before end users use the linter.
+        __Informs the linter creator__ that `lintkit.settings.name.tool` or
+        `lintkit.settings.name.rule` was not set. Both values should be
+        predefined before end users use the linter.
 
     Error output:
 
     ```python
-    Linter name missing (please set 'lintkit.settings.name' variable)
+    Linter tool name missing (please set 'lintkit.settings.name.tool' variable)
+    Linter rule name missing (please set 'lintkit.settings.name.rule' variable)
     ```
 
     """
 
-    def __init__(self) -> None:
-        """Initialize the error."""
+    def __init__(self, kind: typing.Literal["tool", "rule"]) -> None:
+        """Initialize the error.
+
+        Args:
+            kind:
+                Missing identity kind.
+
+        """
+        self.kind = kind
         self.message = (
-            "Linter name missing (please set 'lintkit.settings.name' variable)."
+            f"Linter {kind} name missing (please set "
+            f"'lintkit.settings.name.{kind}' variable)."
         )
         super().__init__(self.message)
 

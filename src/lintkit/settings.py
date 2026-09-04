@@ -15,7 +15,8 @@ Example:
     ```python
     import lintkit
 
-    lintkit.settings.name = "MYLINTER"
+    lintkit.settings.name.tool = "mylinter"
+    lintkit.settings.name.rule = "MYLINTER"
 
     # Now # MYLINTER: 223 could be used to ignore error 223
     lintkit.settings.ignore_line = ".* MYLINTER: .*{name}{code}.*"
@@ -79,16 +80,33 @@ Example:
 
 from __future__ import annotations
 
+import dataclasses
+import typing
+
 from . import error
 from . import output as output_module
 
-name: str | None = None
-"""The name of the linter (`str`).
+
+@dataclasses.dataclass
+class _Name:
+    """Tool and rule identities configured by the linter creator."""
+
+    tool: str | None = None
+    rule: str | None = None
+
+
+name = _Name()
+"""The tool identity and rule-identifier prefix.
 
 Warning:
-    Has to be set before linter usage, usually
-    done at the level of `linter` module creation,
-    __not by the end user__ (user of linter).
+    Both attributes have to be set before defining concrete rules, usually at
+    the level of `linter` module creation, __not by the end user__.
+
+Attributes:
+    tool:
+        Application identity used for configuration and MCP server metadata.
+    rule:
+        Exact, case-sensitive prefix used to construct public rule identifiers.
 
 """
 
@@ -154,19 +172,26 @@ Note:
 """
 
 
-# Used internally by `rule.Rule`
-def _name() -> str:  # pyright: ignore[reportUnusedFunction]
-    """Get the linter name.
+# Used internally by lintkit consumers
+def _name(  # pyright: ignore[reportUnusedFunction]
+    kind: typing.Literal["tool", "rule"],
+) -> str:
+    """Get one configured identity.
+
+    Args:
+        kind:
+            Identity to retrieve.
 
     Returns:
-        The linter name
+        The requested identity unchanged.
 
     Raises:
-        lintkit.error.NameMissingError: If the linter name is not set.
+        lintkit.error.NameMissingError: If the requested identity is not set.
     """
-    if name is None:
-        raise error.NameMissingError
-    return name
+    value = getattr(name, kind)
+    if value is None:
+        raise error.NameMissingError(kind)
+    return value
 
 
 # Used internally by `rule.Rule`

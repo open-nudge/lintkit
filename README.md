@@ -72,8 +72,9 @@ __two rules__ and running it on three files:
 ```python
 import lintkit
 
-# Set the name of the linter
-lintkit.settings.name = "NOUTILS"
+# Set the application identity and public rule prefix
+lintkit.settings.name.tool = "noutils"
+lintkit.settings.name.rule = "NOUTILS"
 
 
 class _NoUtils(lintkit.check.Regex, lintkit.loader.Python, lintkit.rule.Node):

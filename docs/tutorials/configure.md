@@ -71,6 +71,10 @@ include_codes = [4]
 max_name_length = 5
 ```
 
+The root table name `mylinter` is the same as `lintkit.settings.name.tool`.
+The nested rule table name `MYLINTER4` is the `lintkit.settings.name.rule`
+value followed by numeric code `4`.
+
 ## Load config
 
 Lintkit can use [`loadfig`](https://github.com/open-nudge/loadfig) to load the
@@ -98,7 +102,7 @@ import rules
 
 
 def main() -> None:
-    # Loads [tool.mylinter], based on lowercase lintkit.settings.name
+    # Loads [tool.mylinter] based on settings.name.tool
     config = lintkit.config()
 
     # Run the linter with code inclusions and exclusions
@@ -118,9 +122,11 @@ if __name__ == "__main__":
 Things you should note:
 
 - `Rule.config()` reads only the nested table matching that rule's exact public
-    name, such as `[tool.mylinter.MYLINTER4]`
+    name from `settings.name.rule` plus its code, such as
+    `[tool.mylinter.MYLINTER4]`
 - \[`lintkit.config`\][] returns the whole `[tool.mylinter]` table for shared
-    options such as rule selection
+    options such as rule selection; the root table comes from the lowercase
+    form of `settings.name.tool`
 - \[`lintkit.registry.inject`\][] remains available for unrelated custom
     resources that should be shared by __all rules__
 - \[`lintkit.run`\][] gives you more flexibility (e.g.

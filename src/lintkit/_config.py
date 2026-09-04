@@ -23,4 +23,4 @@ def config() -> dict[typing.Any, typing.Any]:
         finds no configuration.
 
     """
-    return loadfig.config(settings._name().lower())  # noqa: SLF001
+    return loadfig.config(settings._name("tool").lower())  # noqa: SLF001

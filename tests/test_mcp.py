@@ -70,7 +70,7 @@ def file_explicit(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
 )
 @pytest.mark.parametrize(
     ("name_arguments", "name"),
-    (([], "TEST"), (["--name", "Custom"], "Custom")),
+    (([], "LINTER"), (["--name", "Custom"], "Custom")),
 )
 @pytest.mark.parametrize(
     ("transport_arguments", "run_arguments"),

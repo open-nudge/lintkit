@@ -197,7 +197,7 @@ class Rule(abc.ABC):
 
             """
             rule = self._config.config().get(
-                f"{settings._name()}{self.code}",  # noqa: SLF001
+                f"{settings._name('rule')}{self.code}",  # noqa: SLF001
                 {},
             )
             return rule.get(key, default)
@@ -374,7 +374,7 @@ class Rule(abc.ABC):
         printer(
             # This might be error prone for multiple linters defined
             # as the same package.
-            name=settings._name(),  # noqa: SLF001
+            name=settings._name("rule"),  # noqa: SLF001
             code=self.code,
             message=message,
             file=self.file,

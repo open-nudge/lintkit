@@ -199,8 +199,8 @@ def _mcp(subparsers: argparse._SubParsersAction[_RootParser]) -> None:
     )
     _ = parser.add_argument(
         "--name",
-        default=settings._name(),  # noqa: SLF001
-        help="Server name (default: linter name).",
+        default=settings._name("tool"),  # noqa: SLF001
+        help="Server name (default: tool name).",
     )
     _ = parser.add_argument(
         "--transport",
@@ -242,7 +242,8 @@ def _selectors(parser: argparse.ArgumentParser) -> None:
             Subcommand parser to update.
 
     """
-    names = tuple(f"{settings._name()}{code}" for code in registry.codes())  # noqa: SLF001
+    rule_name = settings._name("rule")  # noqa: SLF001
+    names = tuple(f"{rule_name}{code}" for code in registry.codes())
     _ = parser.add_argument(
         "--names",
         nargs="*",

@@ -25,8 +25,9 @@ import lintkit
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
-# Define the name for our linter
-lintkit.settings.name = "MYLINTER"
+# Define the application identity and public rule prefix
+lintkit.settings.name.tool = "mylinter"
+lintkit.settings.name.rule = "MYLINTER"
 
 
 class NameDefined(lintkit.loader.TOML, lintkit.rule.Node, code=1):
@@ -65,9 +66,10 @@ class NameDefined(lintkit.loader.TOML, lintkit.rule.Node, code=1):
 
 Please note the following elements:
 
-- [`lintkit.settings.name`][] attribute specifies the name our
-    linter will have (used when outputting errors or defining
-    in-code ignores).
+- [`lintkit.settings.name.tool`][] - name of the linter and its
+    configuration namespace.
+- [`lintkit.settings.name.rule`][] - rule case-sensitive prefix used
+    for diagnostics, `noqa` ignores.
 - [`lintkit.loader.TOML`][] will load `toml` file __and__
     save it as a state under `data`
 - Access to `loader` created attributes should __always__ be performed by
@@ -77,7 +79,7 @@ Please note the following elements:
     all `TOML` files). Check out [File linters](file.md) for more information.
 - `code=1` specifies __numeric value associated with this rule__.
     It will later be displayed as a concatenation of
-    [`lintkit.settings.name`][] and `code`, in our case
+    [`lintkit.settings.name.rule`][] and `code`, in our case
     `"MYLINTER1"`. Many linters have their own codes (or group of codes),
     for example [`ruff`](https://docs.astral.sh/ruff/rules/).
 - One has to define
@@ -157,8 +159,9 @@ import lintkit
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
-# Define the name for our linter
-lintkit.settings.name = "MYLINTER"
+# Define both identities before defining concrete rules
+lintkit.settings.name.tool = "mylinter"
+lintkit.settings.name.rule = "MYLINTER"
 
 
 class PyProjectNameLoader(lintkit.loader.TOML, lintkit.rule.Node):

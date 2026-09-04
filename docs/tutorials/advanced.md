@@ -47,8 +47,16 @@ most of the building blocks by now.
 
 Let's start with `check`ers definitions:
 
+Set both identities before any concrete rule subclasses are defined.
+The lowercase `.tool` value is the tool name,
+`.rule` value is the prefix for rules (used by noqa and settings).
+
 ```python
 import lintkit
+
+# Define both identities before defining concrete rules
+lintkit.settings.name.tool = "my-advanced-linter"
+lintkit.settings.name.rule = "MY-ADVANCED-LINTER"
 
 
 # abstract because we will have to define `regex` method
@@ -208,9 +216,6 @@ import lintkit
 
 # Assuming this is where the rules were defined
 import rules
-
-# Defining linter name here is also fine
-lintkit.settings.name: str = "MY-ADVANCED-LINTER"
 
 if __name__ == "__main__":
     sys.exit(lintkit.run(pathlib.Path(".").rglob("*.py")))
