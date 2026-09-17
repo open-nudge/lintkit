@@ -125,6 +125,7 @@ def main(  # noqa: C901, PLR0912, PLR0913, PLR0915
                 selected_names,
                 selected_end,
                 parsed_args.output,
+                parsed_args.ignore_noqa,
             )
         except error.FilesMissingError as exception:  # pragma: no cover
             parser.error(str(exception))
@@ -149,6 +150,7 @@ def _check(
     names: Iterable[str] | None,
     end_mode: typing.Literal["first", "all"],
     output_name: typing.Literal["cli", "json"],
+    ignore_noqa: bool = False,  # noqa: FBT001, FBT002
 ) -> typing.NoReturn:
     """Run the CLI-only check output and exit handling.
 
@@ -161,6 +163,8 @@ def _check(
             Whether to stop after the first failure or run all rules.
         output_name:
             CLI output format.
+        ignore_noqa:
+            Whether to report violations suppressed by `noqa` comments.
 
     Raises:
         SystemExit:
@@ -171,7 +175,9 @@ def _check(
         output.JSON() if output_name == "json" else settings._output()  # noqa: SLF001
     )
     with selected_output:
-        failed = _subcommand.check(files, names, end_mode)
+        failed = _subcommand.check(
+            files, names, end_mode, ignore_noqa=ignore_noqa
+        )
     raise SystemExit(int(failed))
 
 
@@ -209,6 +215,7 @@ def _mcp(
         files_default=mcp_defaults,
         files_reader=files_reader,
         name=parsed_args.name,
+        ignore_noqa=parsed_args.ignore_noqa,
     ).run(**run_kwargs)
 
 

@@ -120,6 +120,12 @@ def _check(
     _selectors(parser)
 
     _ = parser.add_argument(
+        "--ignore-noqa",
+        action="store_true",
+        help="Report violations suppressed by noqa comments.",
+    )
+
+    _ = parser.add_argument(
         "--end_mode",
         choices=["all", "first"],
         default=None,
@@ -201,6 +207,11 @@ def _mcp(subparsers: argparse._SubParsersAction[_RootParser]) -> None:
         "--name",
         default=settings._name("tool"),  # noqa: SLF001
         help="Server name (default: tool name).",
+    )
+    _ = parser.add_argument(
+        "--ignore-noqa",
+        action="store_true",
+        help="Report violations suppressed by noqa comments.",
     )
     _ = parser.add_argument(
         "--transport",

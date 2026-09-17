@@ -21,6 +21,13 @@ using flags):
 > lintkit mcp
 ```
 
+To report violations even when source files contain matching `noqa`
+comments, configure the server with:
+
+```sh
+> lintkit mcp --ignore-noqa
+```
+
 ## Tools
 
 The server exposes the same commands as `lintkit.cli.main` does
@@ -85,6 +92,12 @@ my_linter_server = lintkit.mcp.server()
 
 parent = FastMCP("My project")
 parent.mount(my_linter_server, namespace="lint")
+```
+
+The same setting is available when constructing a server in Python:
+
+```python
+my_linter_server = lintkit.mcp.server(ignore_noqa=True)
 ```
 
 - the parent server exposes the tools as `lint_<TOOL>` (e.g. `lint_check`).

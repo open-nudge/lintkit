@@ -10,10 +10,28 @@ from __future__ import annotations
 import json
 import pathlib
 import re
+import textwrap
 
 import pytest
 
 import lintkit
+
+CODE = {
+    "clean": "value = 1",
+    "violation": textwrap.dedent(
+        """
+        def test_run_example():
+            pass
+        """
+    ).lstrip("\n"),
+    "noqa_file": textwrap.dedent(
+        """
+        # noqa-file: TEST0
+        def test_run_example():
+            pass
+        """
+    ).lstrip("\n"),
+}
 
 
 @pytest.mark.parametrize(
@@ -74,20 +92,32 @@ def test_commands(
 
 
 @pytest.mark.parametrize(
-    ("content", "expected"),
+    ("source_name", "ignore_noqa", "expected"),
     (
-        ("value = 1\n", (0, ())),
+        ("clean", False, (0, ())),
         (
-            "def test_run_example():\n    pass\n",
+            "violation",
+            False,
             (
                 1,
                 (("TEST0", "", "example.py", 1),),
             ),
         ),
+        (
+            "noqa_file",
+            False,
+            (0, ()),
+        ),
+        (
+            "noqa_file",
+            True,
+            (1, (("TEST0", "", "example.py", 2),)),
+        ),
     ),
 )
 def test_json_check(
-    content: str,
+    source_name: str,
+    ignore_noqa: bool,  # noqa: FBT001
     expected: tuple[int, tuple[tuple[str, str, str, int], ...]],
     tmp_path: pathlib.Path,
     capsys: pytest.CaptureFixture[str],
@@ -95,10 +125,14 @@ def test_json_check(
     """Test JSON results and their corresponding process status.
 
     Args:
-        content:
-            Content of the checked file.
+        source_name:
+            Name of the source to check.
+        ignore_noqa:
+            Whether to bypass `noqa` suppression.
         expected:
             Normalized exit status and JSON records.
+        test_case:
+            Named source files for the check cases.
         tmp_path:
             Temporary directory used to create the checked file.
         capsys:
@@ -106,13 +140,14 @@ def test_json_check(
 
     """
     file = tmp_path / "example.py"
-    _ = file.write_text(content)
+    _ = file.write_text(CODE[source_name])
     with pytest.raises(SystemExit) as exception:
         lintkit.cli.main(
             version="0.0.1",
             args=[
                 "check",
                 str(file),
+                *(["--ignore-noqa"] if ignore_noqa else []),
                 "--output",
                 "json",
                 "--names",

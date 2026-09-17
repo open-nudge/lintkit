@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import abc
 import ast
+import textwrap
 import typing
 
 import lintkit
@@ -159,7 +160,15 @@ class TestRun(TestNode, code=0):
             Stable usage examples for CLI tests.
 
         """
-        return ["def test_run_example():\n    pass", "test_run = True"]
+        return [
+            textwrap.dedent(
+                """
+                def test_run_example():
+                    pass
+                """
+            ).strip(),
+            "test_run = True",
+        ]
 
 
 class TestNoqa(TestNode, code=1):
@@ -172,7 +181,14 @@ class TestNoqa(TestNode, code=1):
             A stable usage example for CLI tests.
 
         """
-        return ["def miss_example():\n    pass"]
+        return [
+            textwrap.dedent(
+                """
+                def miss_example():
+                    pass
+                """
+            ).strip()
+        ]
 
 
 # Not Node rules
