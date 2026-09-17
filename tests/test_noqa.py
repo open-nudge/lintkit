@@ -70,20 +70,33 @@ def test_numeric_boundary(pattern: str, ignore: str) -> None:
     assert re.search(regex, f"{ignore}3") is None
 
 
+@pytest.mark.parametrize(
+    ("ignore_noqa", "expected_count"),
+    ((False, 0), (True, 3)),
+)
 def test_noqa(
     request: pytest.FixtureRequest,
+    ignore_noqa: bool,  # noqa: FBT001
+    expected_count: int,
 ) -> None:
     """Run registered rules on this file.
 
-    No `error` should be raised by the rules, as
-    the `noqa` strings overwrite all of the `TestNoqa` rule
-    matches.
+    Matching `noqa` comments suppress `TestNoqa` matches by default.
 
     Args:
         request:
             Request fixture to access the test context.
+        ignore_noqa:
+            Whether to bypass `noqa` suppression.
+        expected_count:
+            Expected number of failed rules.
 
     """
-    for fail, _ in lintkit.run([request.path], output=True):  # pyright: ignore[reportGeneralTypeIssues]
-        # Bandit false positive
-        assert not fail  # nosemgrep: B101
+    count = 0
+    for fail, rule in lintkit.run(  # pyright: ignore[reportGeneralTypeIssues]
+        [request.path], output=True, ignore_noqa=ignore_noqa
+    ):
+        if fail:
+            assert rule.code == 1
+            count += 1
+    assert count == expected_count

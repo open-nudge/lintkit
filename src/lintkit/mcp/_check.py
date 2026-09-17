@@ -22,6 +22,7 @@ if typing.TYPE_CHECKING:
 def check(
     files_default: Iterable[str | Path] | None,
     files_reader: reader.Base,
+    ignore_noqa: bool = False,  # noqa: FBT001, FBT002
 ) -> typing.Callable[..., str]:
     """Select a check tool with the appropriate files schema.
 
@@ -31,24 +32,29 @@ def check(
             requires `files`; any iterable selects one with captured defaults.
         files_reader:
             Reader applied to whichever paths the check selects.
+        ignore_noqa:
+            Whether to report violations suppressed by `noqa` comments.
 
     Returns:
         A check tool callable with the selected `files` schema.
 
     """
     if files_default is None:
-        return _required(files_reader)
-    return _with_defaults(tuple(files_default), files_reader)
+        return _required(files_reader, ignore_noqa)
+    return _with_defaults(tuple(files_default), files_reader, ignore_noqa)
 
 
 def _required(
     files_reader: reader.Base,
+    ignore_noqa: bool,  # noqa: FBT001
 ) -> typing.Callable[..., str]:
     """Create a check tool that requires files.
 
     Args:
         files_reader:
             Reader applied to explicit paths.
+        ignore_noqa:
+            Whether to report violations suppressed by `noqa` comments.
 
     Returns:
         A check tool callable with required `files`.
@@ -69,7 +75,7 @@ def _required(
             Plain diagnostics without a trailing newline.
 
         """
-        return _run(files_reader(files), names)
+        return _run(files_reader(files), names, ignore_noqa)
 
     return tool
 
@@ -77,6 +83,7 @@ def _required(
 def _with_defaults(
     files_default: tuple[str | Path, ...],
     files_reader: reader.Base,
+    ignore_noqa: bool,  # noqa: FBT001
 ) -> typing.Callable[..., str]:
     """Create a check tool that falls back to captured paths.
 
@@ -85,6 +92,8 @@ def _with_defaults(
             Paths used when the returned callable receives no `files`.
         files_reader:
             Reader applied to explicit paths or captured defaults.
+        ignore_noqa:
+            Whether to report violations suppressed by `noqa` comments.
 
     Returns:
         A check tool callable with optional `files`.
@@ -109,12 +118,16 @@ def _with_defaults(
 
         """
         selected = files_default if files is None else files
-        return _run(files_reader(selected), names)
+        return _run(files_reader(selected), names, ignore_noqa)
 
     return tool
 
 
-def _run(files: Iterable[str | Path], names: list[str] | None) -> str:
+def _run(
+    files: Iterable[str | Path],
+    names: list[str] | None,
+    ignore_noqa: bool,  # noqa: FBT001
+) -> str:
     """Check paths and capture plain diagnostics.
 
     Args:
@@ -122,6 +135,8 @@ def _run(files: Iterable[str | Path], names: list[str] | None) -> str:
             Paths to check.
         names:
             Full, case-sensitive rule names to check. `None` checks all rules.
+        ignore_noqa:
+            Whether to report violations suppressed by `noqa` comments.
 
     Returns:
         Plain diagnostics without a trailing newline.
@@ -129,5 +144,5 @@ def _run(files: Iterable[str | Path], names: list[str] | None) -> str:
     """
     accumulator = output.Accumulator()
     with accumulator:
-        _ = command.check(files, names, end_mode="all")
+        _ = command.check(files, names, end_mode="all", ignore_noqa=ignore_noqa)
     return accumulator.finalize()

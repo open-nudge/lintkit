@@ -20,6 +20,7 @@ def check(
     files: Iterable[str | pathlib.Path],
     names: Iterable[str] | None = None,
     end_mode: typing.Literal["first", "all"] = "all",
+    ignore_noqa: bool = False,  # noqa: FBT001, FBT002
 ) -> bool:
     """Check files with rules selected by full names.
 
@@ -30,6 +31,8 @@ def check(
             Full, case-sensitive rule names to check. `None` checks all rules.
         end_mode:
             Whether to stop after the first failure or run all rules.
+        ignore_noqa:
+            Whether to report violations suppressed by `noqa` comments.
 
     Returns:
         Whether any selected rule failed.
@@ -44,6 +47,7 @@ def check(
             None,
             end_mode,
             output=False,
+            ignore_noqa=ignore_noqa,
         )
         is True
     )

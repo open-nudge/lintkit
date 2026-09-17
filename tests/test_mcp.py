@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import textwrap
 import typing
 
 from unittest.mock import Mock
@@ -29,7 +30,18 @@ def file_default(
 ) -> tuple[pathlib.Path]:
     """Create one default check file shared by the MCP tool cases."""
     path = tmp_path_factory.mktemp("mcp") / "default.py"
-    _ = path.write_text("def test_run_example():\n    pass\n")
+    _ = path.write_text(
+        textwrap.dedent(
+            """
+            def test_run_example():
+                pass
+
+
+            def test_run_suppressed():  # noqa: TEST0
+                pass
+            """
+        ).lstrip("\n")
+    )
     return (path,)
 
 
@@ -39,13 +51,25 @@ def file_explicit(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     directory = tmp_path_factory.mktemp("mcp-explicit")
     path = directory / "nested" / "explicit.py"
     path.parent.mkdir()
-    _ = path.write_text("def miss_example():\n    pass\n")
+    _ = path.write_text(
+        textwrap.dedent(
+            """
+            def miss_example():
+                pass
+
+
+            def miss_suppressed():  # noqa: TEST1
+                pass
+            """
+        ).lstrip("\n")
+    )
     return directory
 
 
 @pytest.mark.parametrize(
     (
         "tool_arguments",
+        "ignore_noqa",
         "enable",
         "disable",
         "files_default",
@@ -54,13 +78,22 @@ def file_explicit(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     (
         (
             [],
+            False,
             None,
             None,
             lintkit.cli.files.default.Recursive(".py"),
             lintkit.cli.files.reader.Default(),
         ),
         (
-            ["--enable", "check", "rules", "--disable", "rules"],
+            [
+                "--enable",
+                "check",
+                "rules",
+                "--disable",
+                "rules",
+                "--ignore-noqa",
+            ],
+            True,
             ["check", "rules"],
             ["rules"],
             lintkit.cli.files.default.Default(),
@@ -109,6 +142,7 @@ def file_explicit(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
 )
 def test_cli_dispatch(  # noqa: PLR0913, PLR0917
     tool_arguments: list[str],
+    ignore_noqa: bool,  # noqa: FBT001
     enable: list[str] | None,
     disable: list[str] | None,
     files_default: lintkit.cli.files.default.Base,
@@ -125,6 +159,8 @@ def test_cli_dispatch(  # noqa: PLR0913, PLR0917
     Args:
         tool_arguments:
             Tool-selection CLI arguments.
+        ignore_noqa:
+            Expected `noqa` setting.
         enable:
             Expected enabled tools.
         disable:
@@ -168,6 +204,7 @@ def test_cli_dispatch(  # noqa: PLR0913, PLR0917
         files_default=expected_default,
         files_reader=files_reader,
         name=name,
+        ignore_noqa=ignore_noqa,
     )
     run.assert_called_once_with(**run_arguments)
 
@@ -274,6 +311,33 @@ async def test_tools(  # noqa: PLR0913, PLR0917
         result = await client.call_tool(tool, arguments)
 
     assert expected in result.data
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("ignore_noqa", "expected_count"), ((False, 1), (True, 2))
+)
+async def test_check_ignore_noqa(
+    ignore_noqa: bool,  # noqa: FBT001
+    expected_count: int,
+    file_default: tuple[pathlib.Path],
+) -> None:
+    """Test whether check reports diagnostics suppressed by `noqa`.
+
+    Args:
+        ignore_noqa:
+            Whether check bypasses `noqa` suppression.
+        expected_count:
+            Expected number of `TEST0` diagnostics.
+        file_default:
+            Shared default file containing both cases.
+    """
+    async with fastmcp.Client(
+        lintkit.mcp.server(files_default=file_default, ignore_noqa=ignore_noqa)
+    ) as client:
+        result = await client.call_tool("check", {"names": ["TEST0"]})
+
+    assert result.data.count("TEST0") == expected_count
 
 
 @pytest.mark.asyncio

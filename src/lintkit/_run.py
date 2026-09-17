@@ -28,6 +28,7 @@ def run(  # noqa: PLR0913, PLR0917
     end_mode: typing.Literal["first", "all"] = "all",
     output: bool = False,  # noqa: FBT001, FBT002
     warn: bool = False,  # noqa: FBT001, FBT002
+    ignore_noqa: bool = False,  # noqa: FBT001, FBT002
 ) -> Iterator[tuple[bool, r.Rule]] | bool:
     """Run all the rules on a given file.
 
@@ -99,6 +100,9 @@ def run(  # noqa: PLR0913, PLR0917
             If `True`, warn about UnicodeDecodeError when encountering
             files `lintkit` is unable to read. Default: `False`
             (skips the file silently).
+        ignore_noqa:
+            If `True`, do not suppress violations with line, range, or
+            whole-file `noqa` comments. Default: `False`.
 
     Returns:
         An iterator over all rules and their outputs OR a boolean indicating
@@ -110,6 +114,7 @@ def run(  # noqa: PLR0913, PLR0917
         exclude_codes=exclude_codes,
         end_mode=end_mode,
         warn=warn,
+        ignore_noqa=ignore_noqa,
     )
     if output:
         return generator_or_callable
@@ -121,12 +126,13 @@ def run(  # noqa: PLR0913, PLR0917
     return errored
 
 
-def _run(  # noqa: C901, PLR0912, PLR0915
+def _run(  # noqa: C901, PLR0912, PLR0913, PLR0915, PLR0917
     files: Iterable[pathlib.Path | str],
     include_codes: Iterable[int] | None = None,
     exclude_codes: Iterable[int] | None = None,
     end_mode: typing.Literal["first", "all"] = "all",
     warn: bool = False,  # noqa: FBT001, FBT002
+    ignore_noqa: bool = False,  # noqa: FBT001, FBT002
 ) -> Iterator[tuple[bool, r.Rule]]:
     """Internal function to run the rules on files.
 
@@ -150,6 +156,8 @@ def _run(  # noqa: C901, PLR0912, PLR0915
             If `True`, warn about UnicodeDecodeError when encountering
             files `lintkit` is unable to read. Default: `False`
             (skips the file silently).
+        ignore_noqa:
+            If `True`, do not apply `noqa` comments.
 
     Yields:
         Rule and whether it raised an error.
@@ -163,6 +171,8 @@ def _run(  # noqa: C901, PLR0912, PLR0915
                     exclude_codes=exclude_codes,
                 )
             )
+            for rule in rules:
+                rule._ignore_noqa = ignore_noqa  # noqa: SLF001
             for file in files:
                 path = pathlib.Path(file)
 
@@ -177,14 +187,20 @@ def _run(  # noqa: C901, PLR0912, PLR0915
                 # Setup and load necessary data for each rule
                 for rule in rules:
                     # Rule has `skip` because it inherits from Loader and Rule.
-                    if rule.skip(path, content) or _ignore.file(rule, content):  # pyright: ignore[reportAttributeAccessIssue]
+                    if rule.skip(path, content) or (  # pyright: ignore[reportAttributeAccessIssue]
+                        not ignore_noqa and _ignore.file(rule, content)
+                    ):
                         continue
                     # Rule will have `_run_load` due to above
                     rule._run_load(  # noqa: SLF001  # pyright: ignore[reportAttributeAccessIssue]
                         path,
                         content,
                         lines,
-                        ignore_spans=list(_ignore.spans(path, rule, lines)),
+                        ignore_spans=(
+                            []
+                            if ignore_noqa
+                            else list(_ignore.spans(path, rule, lines))
+                        ),
                     )
                     for fail in rule():
                         yield fail, rule
@@ -208,6 +224,7 @@ def _run(  # noqa: C901, PLR0912, PLR0915
                     return  # pragma: no cover
         finally:
             for rule in rules:
+                rule._ignore_noqa = False  # noqa: SLF001
                 rule._run_reset()  # noqa: SLF001  # pyright: ignore[reportAttributeAccessIssue]
                 if isinstance(rule, (r.File, r.All)):
                     rule.n_fails = 0

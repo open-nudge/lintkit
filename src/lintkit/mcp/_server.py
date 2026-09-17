@@ -28,6 +28,7 @@ def server(
     *,
     files_default: Iterable[str | Path] | None = None,
     files_reader: reader.Base | None = None,
+    ignore_noqa: bool = False,
     **mcp_kwargs: typing.Any,
 ) -> typing.Any:
     """Create and configure one FastMCP server.
@@ -43,6 +44,9 @@ def server(
         files_reader:
             Reader applied to explicit paths and captured defaults. `None`
             preserves the selected paths unchanged.
+        ignore_noqa:
+            If `True`, report violations suppressed by `noqa` comments in
+            every `check` call on this server.
         **mcp_kwargs:
             FastMCP constructor keyword arguments. Caller values override
             lintkit defaults.
@@ -72,7 +76,7 @@ def server(
     }
     tools = (
         (
-            _check.check(files_default, files_reader),
+            _check.check(files_default, files_reader, ignore_noqa),
             "check",
             "Validate files against linting rules.",
         ),

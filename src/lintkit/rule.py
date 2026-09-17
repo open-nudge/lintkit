@@ -116,6 +116,8 @@ class Rule(abc.ABC):
 
     """
 
+    _ignore_noqa: bool = False
+
     @abc.abstractmethod
     def values(self) -> Iterable[Value[typing.Any]]:
         """Function returning values to check against.
@@ -284,7 +286,7 @@ class Rule(abc.ABC):
     # Refactoring this method might break pyright
     # (e.g. verifying attributes are set will not be picked up
     # if done in a separate helper method).
-    def ignored(self, value: Value[T]) -> bool:
+    def ignored(self, value: Value[T]) -> bool:  # noqa: C901, PLR0911
         """Check if the value should be ignored by this `rule`.
 
         Info:
@@ -310,6 +312,8 @@ class Rule(abc.ABC):
             for whatever reason.
 
         """
+        if self._ignore_noqa:
+            return False
         pointer = value._self_start_line  # noqa: SLF001
         if not pointer:
             if value._self_comment is None:  # noqa: SLF001
